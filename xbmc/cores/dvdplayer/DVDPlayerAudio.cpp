@@ -245,9 +245,6 @@ int CDVDPlayerAudio::DecodeFrame(DVDAudioFrame &audioframe)
 {
   int result = 0;
 
-  // make sure the sent frame is clean
-  memset(&audioframe, 0, sizeof(DVDAudioFrame));
-
   while (!m_bStop)
   {
     bool switched = false;
@@ -280,7 +277,7 @@ int CDVDPlayerAudio::DecodeFrame(DVDAudioFrame &audioframe)
       // get decoded data and the size of it
       m_pAudioCodec->GetData(audioframe);
 
-      if (audioframe.size == 0)
+      if (audioframe.nb_frames == 0)
         continue;
 
       if (audioframe.pts == DVD_NOPTS_VALUE)
@@ -358,7 +355,6 @@ int CDVDPlayerAudio::DecodeFrame(DVDAudioFrame &audioframe)
         m_audioClock = pMsgGeneralResync->m_timestamp;
 
       m_ptsInput.Flush();
-      m_dvdAudio.SetPlayingPts(m_audioClock);
       if (pMsgGeneralResync->m_clock)
         m_pClock->Discontinuity(m_dvdAudio.GetPlayingPts());
     }
@@ -487,6 +483,7 @@ void CDVDPlayerAudio::Process()
   bool packetadded(false);
 
   DVDAudioFrame audioframe;
+  audioframe.data = new uint8_t*[8];
   m_audioStats.Start();
 
   while (!m_bStop)
@@ -527,7 +524,7 @@ void CDVDPlayerAudio::Process()
       break;
     }
 
-    if( audioframe.size == 0 )
+    if( audioframe.nb_frames == 0 )
       continue;
 
     packetadded = true;
@@ -551,14 +548,13 @@ void CDVDPlayerAudio::Process()
 
     // Zero out the frame data if we are supposed to silence the audio
     if (m_silence)
-      memset(audioframe.data, 0, audioframe.size);
-
-    if(result & DECODE_FLAG_DROP)
     {
-      // keep output times in sync
-     m_dvdAudio.SetPlayingPts(m_audioClock);
+      int size = audioframe.nb_frames * audioframe.channel_count / audioframe.planes;
+      for (int i=0; i<audioframe.planes; i++)
+        memset(audioframe.data[i], 0, size);
     }
-    else
+
+    if(!(result & DECODE_FLAG_DROP))
     {
       SetSyncType(audioframe.passthrough);
 
@@ -586,6 +582,8 @@ void CDVDPlayerAudio::Process()
     if (packetadded)
       HandleSyncError(audioframe.duration);
   }
+
+  delete audioframe.data;
 }
 
 void CDVDPlayerAudio::SetSyncType(bool passthrough)
@@ -622,7 +620,10 @@ void CDVDPlayerAudio::HandleSyncError(double duration)
 {
   double absolute;
   double clock = m_pClock->GetClock(absolute);
-  double error = m_dvdAudio.GetPlayingPts() - clock;
+  double pts = m_dvdAudio.GetPlayingPts();
+  if (pts == DVD_NOPTS_VALUE)
+    return;
+  double error = pts - clock;
   EMasterClock master = m_pClock->GetMaster();
 
   if( (fabs(error) > DVD_MSEC_TO_TIME(100) || m_syncclock)
