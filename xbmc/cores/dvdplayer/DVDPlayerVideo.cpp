@@ -286,9 +286,6 @@ void CDVDPlayerVideo::CloseStream(bool bWaitForBuffers)
     CDVDCodecUtils::FreePicture(m_pTempOverlayPicture);
     m_pTempOverlayPicture = NULL;
   }
-
-  //tell the clock we stopped playing video
-  m_pClock->UpdateFramerate(0.0);
 }
 
 void CDVDPlayerVideo::OnStartup()
@@ -300,7 +297,7 @@ void CDVDPlayerVideo::OnStartup()
 
   m_iCurrentPts = DVD_NOPTS_VALUE;
   m_FlipTimeStamp = m_pClock->GetAbsoluteClock();
-
+  m_FlipTimePts   = 0.0;
 }
 
 void CDVDPlayerVideo::Process()
@@ -389,14 +386,16 @@ void CDVDPlayerVideo::Process()
       if(pMsgGeneralResync->m_timestamp != DVD_NOPTS_VALUE)
         pts = pMsgGeneralResync->m_timestamp;
 
-      double delay = m_FlipTimeStamp - m_pClock->GetAbsoluteClock();
+      double absolute = m_pClock->GetAbsoluteClock();
+      double delay = m_FlipTimeStamp - absolute;
       if( delay > frametime ) delay = frametime;
       else if( delay < 0 )    delay = 0;
+      m_FlipTimePts = pts -frametime;
 
       if(pMsgGeneralResync->m_clock)
       {
         CLog::Log(LOGDEBUG, "CDVDPlayerVideo - CDVDMsg::GENERAL_RESYNC(%f, 1)", pts);
-        m_pClock->Discontinuity(pts - delay);
+        m_pClock->Discontinuity(m_FlipTimePts, absolute);
       }
       else
         CLog::Log(LOGDEBUG, "CDVDPlayerVideo - CDVDMsg::GENERAL_RESYNC(%f, 0)", pts);
@@ -1071,6 +1070,7 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
       flags |= CONF_FLAGS_FULLSCREEN;
       m_bAllowFullscreen = false; // only allow on first configure
     }
+
     flags |= stereo_flags;
 
     CLog::Log(LOGDEBUG,"%s - change configuration. %dx%d. framerate: %4.2f. format: %s",__FUNCTION__,pPicture->iWidth, pPicture->iHeight, config_framerate, formatstr.c_str());
@@ -1137,19 +1137,15 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
   }
 
   // calculate the time we need to delay this picture before displaying
-  double iSleepTime, iClockSleep, iFrameSleep, iPlayingClock, iCurrentClock, iFrameDuration;
+  double iSleepTime, iClockSleep, iFrameSleep, iPlayingClock, iCurrentClock;
 
   iPlayingClock = m_pClock->GetClock(iCurrentClock, false); // snapshot current clock
-  iClockSleep = pts - iPlayingClock; //sleep calculated by pts to clock comparison
-  iFrameSleep = m_FlipTimeStamp - iCurrentClock; // sleep calculated by duration of frame
-  iFrameDuration = pPicture->iDuration;
 
   // correct sleep times based on speed
   if(m_speed)
   {
-    iClockSleep = iClockSleep * DVD_PLAYSPEED_NORMAL / m_speed;
-    iFrameSleep = iFrameSleep * DVD_PLAYSPEED_NORMAL / abs(m_speed);
-    iFrameDuration = iFrameDuration * DVD_PLAYSPEED_NORMAL / abs(m_speed);
+    iClockSleep = (pts - iPlayingClock) * DVD_PLAYSPEED_NORMAL / m_speed;
+    iFrameSleep = (pts - m_FlipTimePts) * DVD_PLAYSPEED_NORMAL / m_speed - (iCurrentClock - m_FlipTimeStamp);
   }
   else
   {
@@ -1157,14 +1153,21 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
     iFrameSleep = 0;
   }
 
-  // dropping to a very low framerate is not correct (it should not happen at all)
-  iClockSleep = min(iClockSleep, DVD_MSEC_TO_TIME(500));
-  iFrameSleep = min(iFrameSleep, DVD_MSEC_TO_TIME(500));
-  
-  if( m_stalled )
+  if( m_started == false )
+    iSleepTime = 0.0;
+  else if( m_stalled || m_pClock->GetMaster() == MASTER_CLOCK_VIDEO)
     iSleepTime = iFrameSleep;
   else
     iSleepTime = iClockSleep;
+
+  // sync clock if we are master
+  if(m_pClock->GetMaster() == MASTER_CLOCK_VIDEO)
+  {
+    m_pClock->Update( iPlayingClock + iClockSleep - iFrameSleep
+                    , iCurrentClock
+                    , DVD_MSEC_TO_TIME(10)
+                    , "CDVDPlayerVideo::OutputPicture");
+  }
 
   // present the current pts of this frame to user, and include the actual
   // presentation delay, to allow him to adjust for it
@@ -1176,7 +1179,7 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
   // timestamp when we think next picture should be displayed based on current duration
   m_FlipTimeStamp  = iCurrentClock;
   m_FlipTimeStamp += max(0.0, iSleepTime);
-  m_FlipTimeStamp += iFrameDuration;
+  m_FlipTimePts    = pts;
 
   if (iSleepTime <= 0 && m_speed)
     m_iLateFrames++;
@@ -1218,7 +1221,7 @@ int CDVDPlayerVideo::OutputPicture(const DVDVideoPicture* src, double pts)
 
   AutoCrop(pPicture);
 
-  int buffer = g_renderManager.WaitForBuffer(m_bStop, std::max(DVD_TIME_TO_MSEC(iSleepTime) + 500, 0));
+  int buffer = g_renderManager.WaitForBuffer(m_bStop, std::max(DVD_TIME_TO_MSEC(iSleepTime) + 500, 1));
   if (buffer < 0)
     return EOS_DROPPED;
 

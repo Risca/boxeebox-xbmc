@@ -42,13 +42,15 @@ void CEngineStats::Reset(unsigned int sampleRate)
   m_sinkSampleRate = sampleRate;
   m_bufferedSamples = 0;
   m_suspended = false;
+  m_playingPTS = 0;
 }
 
-void CEngineStats::UpdateSinkDelay(double delay, int samples)
+void CEngineStats::UpdateSinkDelay(double delay, int samples, int64_t pts, int clockId)
 {
   CSingleLock lock(m_lock);
   m_sinkUpdate = XbmcThreads::SystemClockMillis();
   m_sinkDelay = delay;
+  m_playingPTS = (clockId == m_clockId) ? pts : 0;
   if (samples > m_bufferedSamples)
   {
     CLog::Log(LOGERROR, "CEngineStats::UpdateSinkDelay - inconsistency in buffer time");
@@ -118,6 +120,32 @@ float CEngineStats::GetCacheTime(CActiveAEStream *stream)
 float CEngineStats::GetCacheTotal(CActiveAEStream *stream)
 {
   return MAX_CACHE_LEVEL + m_sinkCacheTotal;
+}
+
+int64_t CEngineStats::GetPlayingPTS()
+{
+  CSingleLock lock(m_lock);
+  unsigned int now = XbmcThreads::SystemClockMillis();
+  if (m_playingPTS == 0)
+    return 0;
+
+  int64_t pts = m_playingPTS + (now-m_sinkUpdate);
+
+  if (pts < 0)
+    return 0;
+
+  return pts;
+}
+
+int CEngineStats::Discontinuity(bool reset)
+{
+  CSingleLock lock(m_lock);
+  m_playingPTS = 0;
+  if (reset)
+    m_clockId = 0;
+  else
+    m_clockId++;
+  return m_clockId;
 }
 
 float CEngineStats::GetWaterLevel()
@@ -1071,7 +1099,7 @@ void CActiveAE::Configure(AEAudioFormat *desiredFmt)
     else
     {
       outputFormat = m_sinkFormat;
-      outputFormat.m_dataFormat = AE_FMT_FLOAT;
+      outputFormat.m_dataFormat = AE_IS_PLANAR(outputFormat.m_dataFormat) ? AE_FMT_FLOATP : AE_FMT_FLOAT;
       outputFormat.m_frameSize = outputFormat.m_channelLayout.Count() *
                                  (CAEUtil::DataFormatToBits(outputFormat.m_dataFormat) >> 3);
 
@@ -1231,6 +1259,7 @@ CActiveAEStream* CActiveAE::CreateStream(MsgStreamNew *streamMsg)
   stream->m_statsLock = m_stats.GetLock();
   stream->m_fadingSamples = 0;
   stream->m_started = false;
+  stream->m_clockId = m_stats.Discontinuity(true);
 
   if (streamMsg->options & AESTREAM_PAUSED)
     stream->m_paused = true;
@@ -1920,13 +1949,13 @@ bool CActiveAE::RunStages()
             }
             else
               CLog::Log(LOGWARNING,"ActiveAE::%s - viz ran out of free buffers", __FUNCTION__);
-            unsigned int now = XbmcThreads::SystemClockMillis();
-            unsigned int timestamp = now + m_stats.GetDelay() * 1000;
+            double now = (double)XbmcThreads::SystemClockMillis();
+            double timestamp = now + m_stats.GetDelay() * 1000;
             busy |= m_vizBuffers->ResampleBuffers(timestamp);
             while(!m_vizBuffers->m_outputSamples.empty())
             {
               CSampleBuffer *buf = m_vizBuffers->m_outputSamples.front();
-              if ((now - buf->timestamp) & 0x80000000)
+              if ((now - buf->timestamp) < 0)
                 break;
               else
               {
@@ -1953,6 +1982,12 @@ bool CActiveAE::RunStages()
           m_encoder->Encode(out->pkt->data[0], out->pkt->planes*out->pkt->linesize,
                             buf->pkt->data[0], buf->pkt->planes*buf->pkt->linesize);
           buf->pkt->nb_samples = buf->pkt->max_nb_samples;
+
+          // set pts of last sample
+          buf->pkt_start_offset = buf->pkt->nb_samples;
+          buf->timestamp = out->timestamp;
+          buf->clockId = out->clockId;
+
           out->Return();
           out = buf;
         }

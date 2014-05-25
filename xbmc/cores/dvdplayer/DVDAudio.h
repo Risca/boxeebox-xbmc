@@ -72,25 +72,21 @@ public:
   bool IsValidFormat(const DVDAudioFrame &audioframe);
   void Destroy();
   unsigned int AddPackets(const DVDAudioFrame &audioframe);
-  double GetDelay(); // returns the time it takes to play a packet if we add one at this time
   double GetPlayingPts();
   void   SetPlayingPts(double pts);
   double GetCacheTime();  // returns total amount of data cached in audio output at this time
-  double GetCacheTotal(); // returns total amount the audio device can buffer
   void Flush();
   void Finish();
   void Drain();
+  void Discontinuity();
 
   void SetSpeed(int iSpeed);
   void SetResampleRatio(double ratio);
 
   IAEStream *m_pAudioStream;
 protected:
-  CPTSOutputQueue m_time;
-  unsigned int AddPacketsRenderer(unsigned char* data, unsigned int len, CSingleLock &lock);
-  uint8_t*     m_pBuffer; // should be [m_dwPacketSize]
-  unsigned int m_iBufferSize;
-  unsigned int m_dwPacketSize;
+  unsigned int AddPacketsRenderer(uint8_t **data, unsigned int frames, double pts, CSingleLock &lock);
+  unsigned int m_frameSize;
   CCriticalSection m_critSection;
 
   int m_iBitrate;
