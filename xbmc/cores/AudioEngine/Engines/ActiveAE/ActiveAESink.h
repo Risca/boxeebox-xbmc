@@ -110,6 +110,7 @@ protected:
   void OpenSink();
   void ReturnBuffers();
   void SetSilenceTimer();
+  void FlushPassthrough();
 
   unsigned int OutputSamples(CSampleBuffer* samples);
   void ConvertInit(CSampleBuffer* samples);
