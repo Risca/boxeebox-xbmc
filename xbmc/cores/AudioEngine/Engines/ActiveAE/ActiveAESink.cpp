@@ -303,6 +303,13 @@ void CActiveAESink::StateMachine(int signal, Protocol *port, Message *msg)
           m_volume = *(float*)msg->data;
           m_sink->SetVolume(m_volume);
           return;
+        case CSinkControlProtocol::FLUSH:
+          if (AE_IS_RAW(m_requestedFormat.m_dataFormat))
+            FlushPassthrough();
+          else
+            ReturnBuffers();
+          msg->Reply(CSinkControlProtocol::ACC);
+          return;
         default:
           break;
         }
@@ -785,6 +792,30 @@ void CActiveAESink::ReturnBuffers()
     if (msg->signal == CSinkDataProtocol::SAMPLE)
     {
       samples = *((CSampleBuffer**)msg->data);
+      msg->Reply(CSinkDataProtocol::RETURNSAMPLE, &samples, sizeof(CSampleBuffer*));
+    }
+  }
+}
+
+void CActiveAESink::FlushPassthrough()
+{
+  Message *msg = NULL;
+  CSampleBuffer *samples;
+  bool found = false;
+  while (m_dataPort.ReceiveOutMessage(&msg))
+  {
+    if (msg->signal == CSinkDataProtocol::SAMPLE)
+    {
+      samples = *((CSampleBuffer**)msg->data);
+      if (!found)
+      {
+        if (samples->timestamp)
+        {
+          samples->pkt->nb_samples = samples->pkt_start_offset;
+          OutputSamples(samples);
+          found = true;
+        }
+      }
       msg->Reply(CSinkDataProtocol::RETURNSAMPLE, &samples, sizeof(CSampleBuffer*));
     }
   }
