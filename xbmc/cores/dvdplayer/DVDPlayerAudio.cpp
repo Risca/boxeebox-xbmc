@@ -245,6 +245,9 @@ int CDVDPlayerAudio::DecodeFrame(DVDAudioFrame &audioframe)
 {
   int result = 0;
 
+  // make sure the sent frame is clean
+  audioframe.nb_frames = 0;
+
   while (!m_bStop)
   {
     bool switched = false;
@@ -488,7 +491,6 @@ void CDVDPlayerAudio::Process()
   bool packetadded(false);
 
   DVDAudioFrame audioframe;
-  audioframe.data = new uint8_t*[8];
   m_audioStats.Start();
 
   while (!m_bStop)
@@ -584,8 +586,6 @@ void CDVDPlayerAudio::Process()
     if (packetadded)
       HandleSyncError(audioframe.duration);
   }
-
-  delete audioframe.data;
 }
 
 void CDVDPlayerAudio::SetSyncType(bool passthrough)

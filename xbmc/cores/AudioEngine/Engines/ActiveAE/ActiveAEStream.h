@@ -43,7 +43,7 @@ protected:
 
 public:
   virtual unsigned int GetSpace();
-  virtual unsigned int AddData(uint8_t **data, unsigned int offset, unsigned int frames, double pts);
+  virtual unsigned int AddData(uint8_t* const *data, unsigned int offset, unsigned int frames, double pts);
   virtual double GetDelay();
   virtual int64_t GetPlayingPTS();
   virtual bool IsBuffering();

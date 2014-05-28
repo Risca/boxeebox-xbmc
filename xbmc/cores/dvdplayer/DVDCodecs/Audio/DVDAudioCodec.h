@@ -43,7 +43,7 @@ class CDVDCodecOptions;
 
 typedef struct stDVDAudioFrame
 {
-  uint8_t**         data;
+  uint8_t*          data[16];
   double            pts;
   double            duration;
   unsigned int      nb_frames;

@@ -1455,7 +1455,7 @@ void CActiveAE::ApplySettingsToFormat(AEAudioFormat &format, AudioSettings &sett
   }
   else
   {
-    format.m_dataFormat = AE_FMT_FLOAT;
+    format.m_dataFormat = AE_IS_PLANAR(format.m_dataFormat) ? AE_FMT_FLOATP : AE_FMT_FLOAT;
     // consider user channel layout for those cases
     // 1. input stream is multichannel
     // 2. stereo upmix is selected

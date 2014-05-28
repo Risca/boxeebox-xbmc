@@ -75,6 +75,8 @@ private:
   uint8_t *m_audioPlanes[8];
   int m_planes;
   bool m_needConvert;
+  AEDataFormat m_srcFormat;
+  int m_srcFrameSize;
 };
 
 #endif

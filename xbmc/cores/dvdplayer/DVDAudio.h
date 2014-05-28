@@ -85,7 +85,7 @@ public:
 
   IAEStream *m_pAudioStream;
 protected:
-  unsigned int AddPacketsRenderer(uint8_t **data, unsigned int frames, double pts, CSingleLock &lock);
+  unsigned int AddPacketsRenderer(uint8_t* const *data, unsigned int frames, double pts, CSingleLock &lock);
   unsigned int m_frameSize;
   CCriticalSection m_critSection;
 

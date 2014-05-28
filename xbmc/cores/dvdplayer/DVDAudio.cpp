@@ -169,7 +169,7 @@ void CDVDAudio::Destroy()
   m_bPaused = true;
 }
 
-unsigned int CDVDAudio::AddPacketsRenderer(uint8_t **data, unsigned int frames, double pts, CSingleLock &lock)
+unsigned int CDVDAudio::AddPacketsRenderer(uint8_t* const *data, unsigned int frames, double pts, CSingleLock &lock)
 {
   if(!m_pAudioStream)
     return 0;
@@ -185,7 +185,7 @@ unsigned int CDVDAudio::AddPacketsRenderer(uint8_t **data, unsigned int frames, 
   do
   {
     int64_t iPts = 0;
-    if (pts != DVD_NOPTS_VALUE)
+    if (pts != DVD_NOPTS_VALUE && !offset)
       iPts = (int64_t)DVD_TIME_TO_MSEC(pts);
 
     unsigned int copied = m_pAudioStream->AddData(data, offset, frames, iPts);

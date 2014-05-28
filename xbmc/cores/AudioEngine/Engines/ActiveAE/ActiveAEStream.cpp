@@ -191,12 +191,12 @@ unsigned int CActiveAEStream::GetSpace()
   return m_streamFreeBuffers * m_streamSpace;
 }
 
-unsigned int CActiveAEStream::AddData(uint8_t **data, unsigned int offset, unsigned int frames, double pts)
+unsigned int CActiveAEStream::AddData(uint8_t* const *data, unsigned int offset, unsigned int frames, double pts)
 {
   Message *msg;
   int copied = 0;
   int sourceFrames = frames;
-  uint8_t **buf = data;
+  uint8_t* const *buf = data;
 
   while(copied < frames)
   {
@@ -212,7 +212,7 @@ unsigned int CActiveAEStream::AddData(uint8_t **data, unsigned int offset, unsig
       int freeSpace = m_currentBuffer->pkt->max_nb_samples - m_currentBuffer->pkt->nb_samples;
       int minFrames = std::min(freeSpace, sourceFrames);
       int planes = m_currentBuffer->pkt->planes;
-      int bufOffset = offset + copied*m_format.m_frameSize/planes;
+      int bufOffset = (offset + copied)*m_format.m_frameSize/planes;
 
       if (!copied)
       {
