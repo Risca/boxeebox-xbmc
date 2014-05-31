@@ -26,7 +26,6 @@
 #include "cores/AudioEngine/Interfaces/AESink.h"
 #include "cores/AudioEngine/AESinkFactory.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEResample.h"
-#include "cores/AudioEngine/Utils/AEConvert.h"
 
 namespace ActiveAE
 {
@@ -113,9 +112,7 @@ protected:
   void FlushPassthrough();
 
   unsigned int OutputSamples(CSampleBuffer* samples);
-  void ConvertInit(CSampleBuffer* samples);
-  inline void EnsureConvertBuffer(CSampleBuffer* samples);
-  inline void Convert(CSampleBuffer* samples);
+  void SwapInit(CSampleBuffer* samples);
 
   void GenerateNoise();
 
@@ -131,15 +128,13 @@ protected:
   XbmcThreads::EndTime m_extSilenceTimer;
 
   CSampleBuffer m_sampleOfSilence;
-  CSampleBuffer m_convertBuffer;
-  CAEConvert::AEConvertFrFn m_convertFn;
   enum
   {
-    CHECK_CONVERT,
+    CHECK_SWAP,
     NEED_CONVERT,
     NEED_BYTESWAP,
-    SKIP_CONVERT,
-  } m_convertState;
+    SKIP_SWAP,
+  } m_swapState;
 
   std::string m_deviceFriendlyName;
   std::string m_device;
