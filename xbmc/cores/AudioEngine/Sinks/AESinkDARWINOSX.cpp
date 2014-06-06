@@ -822,5 +822,9 @@ OSStatus CAESinkDARWINOSX::renderCallback(AudioDeviceID inDevice, const AudioTim
     // tell the sink we're good for more data
     condVar.notifyAll();
   }
+
+  sink->m_render_delay = (double)(inOutputTime->mHostTime - inNow->mHostTime) / CurrentHostFrequency();
+  sink->m_render_tick  = inNow->mHostTime;
+  sink->m_render_locker.leave();
   return noErr;
 }

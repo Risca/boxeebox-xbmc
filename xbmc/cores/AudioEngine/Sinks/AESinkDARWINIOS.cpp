@@ -93,7 +93,7 @@ class CAAudioUnitSink
     bool         mute(bool mute);
     bool         pause();
     void         drain();
-    double       getDelay();
+    void         getDelay(AEDelayStatus& status);
     double       cacheSize();
     unsigned int write(uint8_t *data, unsigned int byte_count);
     unsigned int chunkSize() { return m_bufferDuration * m_sampleRate; }
@@ -148,6 +148,8 @@ CAAudioUnitSink::CAAudioUnitSink()
 , m_playing(false)
 , m_playing_saved(false)
 , m_started(false)
+, m_render_timestamp(0)
+, m_render_frames(0)
 {
 }
 
@@ -217,7 +219,7 @@ bool CAAudioUnitSink::pause()
 
 void CAAudioUnitSink::getDelay(AEDelayStatus& status)
 {
-  CAESpinLock lock(m_section);
+  CAESpinLock lock(m_render_section);
   do
   {
     status.delay  = (double)m_buffer->GetReadSize() / m_frameSize;
@@ -227,8 +229,6 @@ void CAAudioUnitSink::getDelay(AEDelayStatus& status)
 
   status.delay /= m_sampleRate;
   status.delay += m_bufferDuration + m_outputLatency;
-
-  return delay;
 }
 
 double CAAudioUnitSink::cacheSize()
@@ -529,7 +529,7 @@ OSStatus CAAudioUnitSink::renderCallback(void *inRefCon, AudioUnitRenderActionFl
   }
 
   sink->m_render_timestamp = inTimeStamp->mHostTime;
-  sink->m_render_frames    = inNumberFrames
+  sink->m_render_frames    = inNumberFrames;
   sink->m_render_section.leave();
   // tell the sink we're good for more data
   condVar.notifyAll();
