@@ -275,13 +275,16 @@ bool CAESinkPi::IsCompatible(const AEAudioFormat &format, const std::string &dev
   return compatible;
 }
 
-double CAESinkPi::GetDelay()
+void CAESinkPi::GetDelay(AEDelayStatus& status)
 {
   OMX_PARAM_U32TYPE param;
   OMX_INIT_STRUCTURE(param);
 
   if (!m_Initialized)
-    return 0.0;
+  {
+    status.SetDelay(0);
+    return;
+  }
 
   param.nPortIndex = m_omx_render.GetInputPort();
 
@@ -293,7 +296,7 @@ double CAESinkPi::GetDelay()
       CLASSNAME, __func__, omx_err);
   }
   double sinkbuffer_seconds_to_empty = m_sinkbuffer_sec_per_byte * param.nU32 * m_format.m_frameSize;
-  return sinkbuffer_seconds_to_empty;
+  status.SetDelay(sinkbuffer_seconds_to_empty);
 }
 
 double CAESinkPi::GetCacheTime()
