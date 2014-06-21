@@ -299,11 +299,6 @@ void CAESinkPi::GetDelay(AEDelayStatus& status)
   status.SetDelay(sinkbuffer_seconds_to_empty);
 }
 
-double CAESinkPi::GetCacheTime()
-{
-  return GetDelay();
-}
-
 double CAESinkPi::GetCacheTotal()
 {
   return AUDIO_PLAYBUFFER;
@@ -321,7 +316,9 @@ unsigned int CAESinkPi::AddPackets(uint8_t **data, unsigned int frames, unsigned
   OMX_BUFFERHEADERTYPE *omx_buffer = NULL;
   while (sent < frames)
   {
-    double delay = GetDelay();
+    AEDelayStatus status;
+    GetDelay(status);
+    double delay = status.GetDelay();
     double ideal_submission_time = AUDIO_PLAYBUFFER - delay;
     // ideal amount of audio we'd like submit (to make delay match AUDIO_PLAYBUFFER)
     int timeout = 1000;
@@ -368,10 +365,12 @@ unsigned int CAESinkPi::AddPackets(uint8_t **data, unsigned int frames, unsigned
 
 void CAESinkPi::Drain()
 {
-  int delay = (int)(GetDelay() * 1000.0);
+  AEDelayStatus status;
+  GetDelay(status);
+  int delay = (int)(status.GetDelay() * 1000.0);
   if (delay)
     Sleep(delay);
-  CLog::Log(LOGDEBUG, "%s:%s delay:%dms now:%dms", CLASSNAME, __func__, delay, (int)(GetDelay() * 1000.0));
+  CLog::Log(LOGDEBUG, "%s:%s delay:%dms now:%dms", CLASSNAME, __func__, delay, (int)(status.GetDelay() * 1000.0));
 }
 
 void CAESinkPi::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
