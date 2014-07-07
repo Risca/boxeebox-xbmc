@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 set(TARGET "i686-pc-linux-gnu")
 set(TARGET_DIR "${SYSROOT}/usr")
 
-set(BINUTILS_VERSION "2.18" CACHE STRING "Version of binutils to build")
-set(GCC_VERSION "4.2.1" CACHE STRING "Version of GCC to build")
+set(BINUTILS_VERSION "2.20.1" CACHE STRING "Version of binutils to build")
+set(GCC_VERSION "4.4.3" CACHE STRING "Version of GCC to build")
 set(ENABLE_GDB OFF CACHE BOOL "Wether to build gdb or not")
 
 include(ExternalProject)
@@ -14,11 +14,11 @@ string(REPLACE "\n" "" HOSTMACHINE ${HOSTMACHINE})
 
 ExternalProject_Add(
 	kernel
-	URL					ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.28.8.tar.bz2
-	URL_MD5				8440a90637cff154195895743ef498a1
+	URL					ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.32.8.tar.bz2
+	URL_MD5				82023ede52f067fcc55c5e70b02e48ae
 	PATCH_COMMAND		cp ${CMAKE_SOURCE_DIR}/kernel.config .config
 	CONFIGURE_COMMAND	""
-	BUILD_COMMAND		make ARCH=i386 CROSS_COMPILE=i686-linux-elf- include/linux/version.h
+	BUILD_COMMAND		make ARCH=i386 include/linux/version.h
 	INSTALL_COMMAND		${CMAKE_COMMAND} -E copy_directory include/linux ${TARGET_DIR}/include/linux
 		COMMAND			${CMAKE_COMMAND} -E copy_directory arch/x86/include/asm ${TARGET_DIR}/include/asm
 		COMMAND			${CMAKE_COMMAND} -E copy_directory include/asm-generic ${TARGET_DIR}/include/asm-generic
@@ -29,8 +29,7 @@ ExternalProject_Add(
 	boot-binutils
 	PREFIX 				${CMAKE_BINARY_DIR}/binutils
 	URL 				http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.bz2
-	URL_MD5 			ccd264a5fa9ed992a21427c69cba91d3
-	PATCH_COMMAND 		sed -e "6128,6135d" -i configure # prevents binutls from failing due to newer makeinfo
+	URL_MD5 			2b9dc8f2b7dbd5ec5992c6e29de0b764
 	CONFIGURE_COMMAND	 <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --with-lib-path=${TARGET_DIR}/lib --prefix=${TARGET_DIR} --target ${TARGET} --disable-nls --disable-werror --program-prefix=${TARGET}-
 	BUILD_COMMAND		make ${PARALLEL}
 	DEPENDS 			kernel
@@ -40,25 +39,23 @@ ExternalProject_Add(
 	boot-gcc
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
-	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --enable-bootstrap  #--disable-libquadmath  --disable-libatomic
-	BUILD_COMMAND		make all-gcc ${PARALLEL}
-	INSTALL_COMMAND make install-gcc
-		COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc.a  ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc_eh.a
+	URL_MD5 			fe1ca818fc6d2caeffc9051fe67ff103
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-arch-32=i686 --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --enable-bootstrap  #--disable-libquadmath  --disable-libatomic
+	BUILD_COMMAND		make all-gcc all-target-libgcc || return 1 ${PARALLEL}
+	INSTALL_COMMAND make install-gcc install-target-libgcc || return 1
+		COMMAND         ln -sf ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc.a ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc_eh.a
+		COMMAND         rm -rf ${TARGET_DIR}/lib/libgcc_s.so
+        COMMAND         ln -sf libgcc_s.so.1 ${TARGET_DIR}/lib/libgcc_s.so
 	DEPENDS 			boot-binutils
 )
 
 ExternalProject_Add(
 	glibc
-	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.7.tar.bz2
-	URL_MD5 			065c5952b439deba40083ccd67bcc8f7
-	PATCH_COMMAND		cat elf/Makefile | sed s,\ readelf\ ,\ ${PREFIX}/bin/${TARGET}-readelf\ ,g > elf/Makefile.new
-		COMMAND 		${CMAKE_COMMAND} -E copy elf/Makefile.new elf/Makefile
-		COMMAND 		cat configure | sed s,\ readelf\ ,\ ${TARGET_DIR}/bin/${TARGET}-readelf\ ,g > configure.new
-		COMMAND 		${CMAKE_COMMAND} -E copy configure.new configure
-		COMMAND 		chmod +x configure
+	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.11.1.tar.gz
+	URL_MD5 			cf60820c052b14a9c5a7816fc7dc0161
+	PATCH_COMMAND       patch -p1 < ${CMAKE_SOURCE_DIR}/glibc-2.11.1.patch	
+	CONFIGURE_COMMAND	CC=${TARGET}-gcc <SOURCE_DIR>/configure --target=${TARGET} --host=${TARGET} --prefix=/usr --with-elf --enable-obsolete-rpc --disable-nls --enable-kernel=2.6 --with-headers=${TARGET_DIR}/include --with-binutils=${TARGET_DIR}/bin libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes CFLAGS=-O2\ -march=i486
 	BUILD_COMMAND		make ${PARALLEL}
-	CONFIGURE_COMMAND	CC=${TARGET}-gcc <SOURCE_DIR>/configure --build=${HOSTMACHINE} --target=${TARGET} --host=${TARGET} --disable-nls --enable-kernel=2.6.28 --prefix=/usr --with-headers=${TARGET_DIR}/include libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes CFLAGS=-O2\ -march=i686 --program-prefix=${TARGET}-
 	INSTALL_COMMAND		make ${PARALLEL} install_root=${SYSROOT} install
 	DEPENDS boot-gcc
 )
@@ -67,8 +64,9 @@ ExternalProject_Add(
 	gcc2
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
-	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --program-prefix=${TARGET}-
+	URL_MD5 			fe1ca818fc6d2caeffc9051fe67ff103
+	PATCH_COMMAND       patch -p1 < ${CMAKE_SOURCE_DIR}/gcc-4.4.3-startfiles_fix-1.patch
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libada -enable-c99 --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --program-prefix=${TARGET}-
 	BUILD_COMMAND 		make ${PARALLEL}
 	DEPENDS 			glibc
 )
