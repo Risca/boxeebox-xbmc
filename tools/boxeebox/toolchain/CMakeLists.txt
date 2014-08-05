@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(TARGET "i686-pc-linux-gnu")
+set(TARGET "i686-unknown-linux-gnu")
 set(TARGET_DIR "${SYSROOT}/usr")
 
-set(BINUTILS_VERSION "2.20.1a" CACHE STRING "Version of binutils to build")
-set(GCC_VERSION "4.4.3" CACHE STRING "Version of GCC to build")
+set(BINUTILS_VERSION "2.24" CACHE STRING "Version of binutils to build")
+set(GCC_VERSION "4.9.1" CACHE STRING "Version of GCC to build")
 set(ENABLE_GDB OFF CACHE BOOL "Wether to build gdb or not")
 
 include(ExternalProject)
@@ -14,143 +14,117 @@ string(REPLACE "\n" "" HOSTMACHINE ${HOSTMACHINE})
 
 ExternalProject_Add(
 	kernel
-	URL					ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.32.8.tar.bz2
-	URL_MD5				82023ede52f067fcc55c5e70b02e48ae
-	PATCH_COMMAND		cp ${CMAKE_SOURCE_DIR}/kernel.config .config
-	CONFIGURE_COMMAND	""
-	BUILD_COMMAND		make ARCH=i386 include/linux/version.h
-	INSTALL_COMMAND		${CMAKE_COMMAND} -E copy_directory include/linux ${TARGET_DIR}/include/linux
-		COMMAND			${CMAKE_COMMAND} -E copy_directory arch/x86/include/asm ${TARGET_DIR}/include/asm
-		COMMAND			${CMAKE_COMMAND} -E copy_directory include/asm-generic ${TARGET_DIR}/include/asm-generic
+	URL					ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-3.15.4.tar.gz
+	URL_MD5				d530ecf5197f9fc00ebcf3a8203e2ade
+	PATCH_COMMAND		cp ${CMAKE_SOURCE_DIR}/generic-linux.i386.conf .config
+	CONFIGURE_COMMAND   ""
+        COMMAND         make mrproper	
+	BUILD_COMMAND		make ARCH=i386 INSTALL_HDR_PATH=dest headers_install
+	INSTALL_COMMAND     ${CMAKE_COMMAND} -E copy_directory dest/include ${TARGET_DIR}/include
 	BUILD_IN_SOURCE		1
+)
+
+ExternalProject_Add(
+	gmp
+	URL 				https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2
+	URL_MD5				b7ff2d88cae7f8085bd5006096eed470
+	CONFIGURE_COMMAND 	LDFLAGS=-Wl,-rpath,${TARGET_DIR}/lib <SOURCE_DIR>/configure ABI=32 --enable-cxx --prefix=${TARGET_DIR} --build=${HOSTMACHINE}
+	BUILD_COMMAND 		make ${PARALLEL}
+	INSTALL_COMMAND     make install
+	DEPENDS 			kernel
+)
+
+ExternalProject_Add(
+	mpfr
+	URL 				http://ftp.gnu.org/gnu/mpfr/mpfr-3.1.2.tar.bz2
+	URL_MD5				ee2c3ac63bf0c2359bf08fc3ee094c19
+	CONFIGURE_COMMAND 	LDFLAGS=-Wl,-rpath,${TARGET_DIR}/lib <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --target=${TARGET} --enable-shared --with-gmp-lib=${TARGET_DIR}/lib --with-gmp-include=${TARGET_DIR}/include
+	BUILD_COMMAND 		make ${PARALLEL}
+	INSTALL_COMMAND     make install
+	DEPENDS 			gmp
+)
+
+ExternalProject_Add(
+	mpc
+	URL 				http://ftp.gnu.org/gnu/mpc/mpc-1.0.2.tar.gz
+	URL_MD5				68fadff3358fb3e7976c7a398a0af4c3
+	CONFIGURE_COMMAND 	LDFLAGS=-Wl,-rpath,${TARGET_DIR}/lib <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --target=${TARGET} --enable-shared --disable-static --with-gmp=${TARGET_DIR} --with-mpfr=${TARGET_DIR}
+	BUILD_COMMAND 		make ${PARALLEL}
+	INSTALL_COMMAND     make install
+	DEPENDS 			gmp mpfr
 )
 
 ExternalProject_Add(
 	boot-binutils
 	PREFIX 				${CMAKE_BINARY_DIR}/binutils
 	URL 				http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.bz2
-	URL_MD5 			2b9dc8f2b7dbd5ec5992c6e29de0b764
-	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/100-ppc64-pie.patch
-	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/110-RPATH_ENVVAR-smack.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/120-sh-targets.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/130-ld-sysroot.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/140-check_ldrunpath_length.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/150-pt-pax-flags-20090909.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/160-amd64-32bit-path.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/170-warn-textrel.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/190-use-new-ld-dtags.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/200-document-new-dtags-behaviour.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/220-use-relro.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/230-libiberty-pic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/240-ld_makefile.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/250-arm-eabi-conf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/270-better_file_error.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/280-unexport_LD_LIBRARY_PATH.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/290-ld-stub-crash.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/BINUTILS-2.20.1a-patches/300-mips64-defaultemul.patch
-	CONFIGURE_COMMAND	 <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --with-lib-path=${TARGET_DIR}/lib --prefix=${TARGET_DIR} --target ${TARGET} --disable-nls --disable-werror --program-prefix=${TARGET}-
+	URL_MD5 			e0f71a7b2ddab0f8612336ac81d9636b
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --target=${TARGET} --with-sysroot=${SYSROOT} --with-lib-path=${TARGET_DIR}/lib --prefix=${TARGET_DIR} --disable-nls --disable-werror --with-gmp=${TARGET_DIR} --with-mpfr=${TARGET_DIR} --with-mpc=${TARGET_DIR} --disable-multilib  --disable-libada --disable-libssp --enable-version-specific-runtime-libs --enable-gold --enable-lto --program-prefix=${TARGET}-
 	BUILD_COMMAND		make ${PARALLEL}
-	DEPENDS 			kernel
+	DEPENDS 			mpc
 )
 
 ExternalProject_Add(
 	boot-gcc
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			fe1ca818fc6d2caeffc9051fe67ff103
-	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-arch-32=i686 --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --enable-bootstrap --disable-libsanitizer --enable-checking=release  #--disable-libquadmath  --disable-libatomic
-	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/100-alpha-mieee-default.patch
-	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/110-trampolinewarn.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/120-java-nomulti.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/130-cross-compile.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/140-default-format-security.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/150-default-fortify-source.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/160-netbsd-symbolic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/170-sparc64-bsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/180-libgomp-no-werror.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/190-flatten-switch-stmt-00.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/200-libiberty.h-asprintf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/210-arm-unbreak-armv4t.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/220-libiberty-pic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/230-superh-default-multilib.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/240-libstdc++-pic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/250-ia64-noteGNUstack.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/260-sh-libgcc-stacks.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/270-sh-pr24836.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/280-freebsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/290-freebsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/300-uclibc-conf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/310-missing-execinfo_h.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/320-c99-snprintf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/330-libmudflap-susv3-legacy.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/340-ecjx-host-cc.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/350-index_macro.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/360-arm-bigendian.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/370-bootstrap-target_lib_path.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/380-powerpc-libgcc_s-link-libm.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/390-arm-softfloat-libgcc.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/400-pr42289-fix-libffi-build-on-arm-oabi.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/410-libgcc_eh.a.patch
+	URL_MD5 			fddf71348546af523353bd43d34919c1
+	PATCH_COMMAND       sed -i "/k prot/agcc_cv_libc_provides_ssp=yes" ${CMAKE_BINARY_DIR}/gcc/src/boot-gcc/configure
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --target=${TARGET} --prefix=${TARGET_DIR} --with-sysroot=${SYSROOT} --disable-nls --without-headers --with-newlib --enable-languages=c --with-gmp=${TARGET_DIR}/include --with-mpfr=${TARGET_DIR}/include --with-mpc=${TARGET_DIR}/include --enable-bootstrap --with-native-system-header-dir=${TARGET_DIR}/include --enable-checking=release  --disable-libquadmath  --disable-libatomic --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --disable-multilib --disable-__cxa_atexit --disable-libsanitizer --disable-libitm
 	BUILD_COMMAND		make all-gcc all-target-libgcc || return 1 ${PARALLEL}
 	INSTALL_COMMAND make install-gcc install-target-libgcc || return 1
-		COMMAND         ln -sf ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc.a ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc_eh.a
-		COMMAND         rm -rf ${TARGET_DIR}/lib/libgcc_s.so
-        COMMAND         ln -sf libgcc_s.so.1 ${TARGET_DIR}/lib/libgcc_s.so
+		COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc.a  ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc_eh.a
 	DEPENDS 			boot-binutils
 )
 
 ExternalProject_Add(
 	glibc
-	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.11.1.tar.gz
-	URL_MD5 			cf60820c052b14a9c5a7816fc7dc0161
-	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/GLIBC_2.11.1-patches/900-march-i686.patch
-	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GLIBC_2.11.1-patches/910-typedef-caddr.patch
-	CONFIGURE_COMMAND	CC=${TARGET}-gcc <SOURCE_DIR>/configure --target=${TARGET} --host=${TARGET} --prefix=/usr --with-sysroot=${SYSROOT} --with-elf --enable-obsolete-rpc --disable-nls --enable-kernel=2.6 -with-kernel-headers=/usr/include --with-headers=${TARGET_DIR}/include --with-binutils=${TARGET_DIR}/bin libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes CFLAGS=-O2\ -U_FORTIFY_SOURCE\ -march=i686 --disable-sanity-checks
-	BUILD_COMMAND		make
-	INSTALL_COMMAND		make install_root=${SYSROOT} install
+	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.19.tar.gz
+	URL_MD5 			5374d29864b583622b62bfc6b8429418
+	PATCH_COMMAND		cat elf/Makefile | sed s,\ readelf\ ,\ ${PREFIX}/bin/${TARGET}-readelf\ ,g > elf/Makefile.new
+		COMMAND 		${CMAKE_COMMAND} -E copy elf/Makefile.new elf/Makefile
+		COMMAND 		cat configure | sed s,\ readelf\ ,\ ${TARGET_DIR}/bin/${TARGET}-readelf\ ,g > configure.new
+		COMMAND 		${CMAKE_COMMAND} -E copy configure.new configure
+		COMMAND 		chmod +x configure
+		COMMAND         sed -i s|<rpc/types.h>|"rpc/types.h"| sunrpc/rpc_clntout.c
+	CONFIGURE_COMMAND	libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes libc_cv_ssp=no <SOURCE_DIR>/configure --prefix=/usr --target=${TARGET} --host=${TARGET} --with-sysroot=${SYSROOT} --with-lib-path=${TARGET_DIR}/lib --with-binutils=${TARGET_DIR}/bin --disable-profile --enable-bind-now --with-elf --with-tls --cache-file=config.cache --enable-obsolete-rpc --without-gd --without-selinux --disable-nls --enable-kernel=2.6 --with-kernel-headers=${TARGET_DIR}/include --with-headers=${TARGET_DIR}/include CFLAGS=-O2\ -fno-stack-protector\ -U_FORTIFY_SOURCE\ -march=i686 --with-arch-32=i686 --disable-multi-arch --program-prefix=${TARGET}-
+	BUILD_COMMAND		make ${PARALLEL}
+	INSTALL_COMMAND		make ${PARALLEL} install_root=${SYSROOT} install
 	DEPENDS boot-gcc
+)
+
+ExternalProject_Add(
+	binutils
+	PREFIX 				${CMAKE_BINARY_DIR}/binutils
+	URL 				http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.bz2
+	URL_MD5 			e0f71a7b2ddab0f8612336ac81d9636b
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --target=${TARGET} --with-sysroot --with-lib-path=${TARGET_DIR}/lib --prefix=${TARGET_DIR} --disable-nls --disable-werror --with-gmp=${TARGET_DIR} --with-mpfr=${TARGET_DIR} --with-mpc=${TARGET_DIR} --with-arch-32=i686 --disable-multilib  --disable-libada --disable-libssp --enable-version-specific-runtime-libs --enable-gold --enable-lto --program-prefix=${TARGET}-
+	BUILD_COMMAND		make ${PARALLEL}
+	INSTALL_COMMAND		make ${PARALLEL} install_root=${SYSROOT} install
+	DEPENDS 			glibc
 )
 
 ExternalProject_Add(
 	gcc2
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			fe1ca818fc6d2caeffc9051fe67ff103
-	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/100-alpha-mieee-default.patch
-	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/110-trampolinewarn.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/120-java-nomulti.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/130-cross-compile.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/140-default-format-security.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/150-default-fortify-source.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/160-netbsd-symbolic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/170-sparc64-bsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/180-libgomp-no-werror.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/190-flatten-switch-stmt-00.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/200-libiberty.h-asprintf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/210-arm-unbreak-armv4t.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/220-libiberty-pic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/230-superh-default-multilib.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/240-libstdc++-pic.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/250-ia64-noteGNUstack.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/260-sh-libgcc-stacks.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/270-sh-pr24836.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/280-freebsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/290-freebsd.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/300-uclibc-conf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/310-missing-execinfo_h.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/320-c99-snprintf.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/330-libmudflap-susv3-legacy.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/340-ecjx-host-cc.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/350-index_macro.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/360-arm-bigendian.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/370-bootstrap-target_lib_path.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/380-powerpc-libgcc_s-link-libm.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/390-arm-softfloat-libgcc.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/400-pr42289-fix-libffi-build-on-arm-oabi.patch
-		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/GCC-4.4.3-patches/410-libgcc_eh.a.patch
-	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libada -enable-c99 --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads=posix --enable-__cxa_atexit --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --enable-checking=release --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --program-prefix=${TARGET}-
-	BUILD_COMMAND 		make ${PARALLEL}
-	DEPENDS 			glibc
+	URL_MD5 			fddf71348546af523353bd43d34919c1
+	PATCH_COMMAND       sed -i "/k prot/agcc_cv_libc_provides_ssp=yes" ${CMAKE_BINARY_DIR}/gcc/src/gcc2/configure
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --enable-languages=c,c++ --target=${TARGET} --with-sysroot=${SYSROOT} --prefix=${TARGET_DIR} --with-local-prefix=${TARGET_DIR} --build=${TARGET} --with-lib-path=${TARGET_DIR}/lib --with-system-zlib --with-arch-32=i686 --with-gmp=${TARGET_DIR}/include --with-mpfr=${TARGET_DIR}/include --with-mpc=${TARGET_DIR}/include --enable-lto --cache-file=config.cache --disable-werror --disable-libstdcxx-pch --with-gnu-as --with-gnu-ld --enable-clocale=gnu --enable-shared --enable-threads=posix --enable-plugin --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-libquadmath --disable-bootstrap --enable-checking=release --with-ppl=no --with-cloog=no --program-prefix=${TARGET}-
+	BUILD_COMMAND		make all-gcc all-target-libgcc all-target-libstdc++-v3 || return 1 ${PARALLEL}
+	INSTALL_COMMAND     make install-gcc install-target-libgcc install-target-libstdc++-v3 install_root=${SYSROOT} || return 1
+	DEPENDS 			binutils
+)
+
+ExternalProject_Add(
+	zlib
+	URL                 http://zlib.net/zlib-1.2.8.tar.gz
+	URL_MD5             44d667c142d7cda120332623eab69f40
+	CONFIGURE_COMMAND	CROSS_PREFIX=${TARGET} AR=${TARGET}-ar CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib <SOURCE_DIR>/configure --uname=Linux --prefix=${SYSROOT}/usr
+	BUILD_COMMAND 		""
+	INSTALL_COMMAND 	make ${PARALLEL} install
+	BUILD_IN_SOURCE 	1
+	DEPENDS 			gcc2
 )
 
 if(ENABLE_GDB)

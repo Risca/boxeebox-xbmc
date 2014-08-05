@@ -8,7 +8,7 @@ get_filename_component(SR "${CMAKE_SOURCE_DIR}/sysroot" REALPATH)
 
 set(SYSROOT ${SR} CACHE PATH "The sysroot directory where everything will be installed")
 set(PARALLEL "-j8" CACHE STRING "Arguments for make for parallel builds")
-set(TARGET i686-pc-linux-gnu)
+set(TARGET i686-unknown-linux-gnu)
 set(TARGET_DIR ${CMAKE_SOURCE_DIR}/dist CACHE PATH "Directory to install everything to")
 set(BOXEEBOX_IP "boxeebox" CACHE STRING "ipaddress or hostname of your boxeebox (only used for remote debugging)")
 message("Using Sysroot: ${SYSROOT}")
@@ -68,7 +68,7 @@ export PYTHON_NOVERSIONCHECK=\"y\"
 export PYTHON=\"${local}/bin/python\"
 export PYTHON_CPPFLAGS=\"-I${local}/include/python2.7\"
 export PYTHON_LDFLAGS=\"\$PF -ldl -lpthread -lutil\"
-${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR}/../../ ./configure --prefix=${local} --host=${TARGET} --with-ffmpeg --disable-gl --disable-pulse --disable-sdl --enable-mysql --disable-x11 --with-arch=i686 --with-platform=linux --enable-gles --enable-external-libraries --disable-joystick --enable-debug --enable-texturepacker --enable-nfs --enable-rtmp --enable-libcec=yes --enable-libusb --with-lirc-device=/var/run/lirc/lircd --enable-airplay
+${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR}/../../ ./configure --prefix=${local} --host=${TARGET} --build=i686-linux --with-ffmpeg --disable-gl --disable-pulse --disable-sdl --enable-mysql --disable-x11 --with-arch=i686 --with-platform=linux --enable-gles --enable-external-libraries --disable-joystick --enable-debug --enable-texturepacker --enable-nfs --enable-rtmp --enable-libcec=yes --enable-libusb --with-lirc-device=/var/run/lirc/lircd --enable-airplay
 "
 )
 execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/xbmc_configure_helper.sh)
@@ -97,6 +97,7 @@ set(libs
 	libpng15.so.15	
 	libyajl.so.2
 	libssh.so.4
+	libmicrohttpd.so.10
 	liblzo2.so.2
 	libtiff.so.5
 	libpython2.7.so.1.0
@@ -155,10 +156,10 @@ foreach(lib ${libs})
 	endif()
 endforeach()
 
-if(EXISTS ${SYSROOT}/usr/i686-pc-linux-gnu/lib/libstdc++.so.6)
-	set(stdsrc ${SYSROOT}/usr/i686-pc-linux-gnu/lib/libstdc++.so.6)
+if(EXISTS ${SYSROOT}/usr/i686-unknown-linux-gnu/lib/libstdc++.so.6)
+	set(stdsrc ${SYSROOT}/usr/i686-unknown-linux-gnu/lib/libstdc++.so.6)
 else()
-	set(stdsrc ${SYSROOT}/usr/lib/libstdc++.so.6)
+	set(stdsrc ${SYSROOT}/usr/lib/libstdc++.so.6)	
 endif()
 
 add_custom_target(
@@ -214,7 +215,7 @@ endif()
 add_custom_target(
 	quickdist
 	COMMAND 			${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../../xbmc.bin ${CMAKE_BINARY_DIR}/xbmc.bin
-	COMMAND 			${SYSROOT}/usr/bin/i686-pc-linux-gnu-strip ${CMAKE_BINARY_DIR}/xbmc.bin
+	COMMAND 			${SYSROOT}/usr/bin/i686-unknown-linux-gnu-strip ${CMAKE_BINARY_DIR}/xbmc.bin
 	COMMAND 			${COPY}
 	DEPENDS 			xbmc ${CMAKE_SOURCE_DIR}/../../xbmc.bin
 )

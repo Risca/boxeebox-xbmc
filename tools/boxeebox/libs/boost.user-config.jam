@@ -1,1 +1,1 @@
-using gcc : i686 : i686-pc-linux-gnu-g++ ;
+using gcc : i686 : i686-linux-gnu-g++ ;
