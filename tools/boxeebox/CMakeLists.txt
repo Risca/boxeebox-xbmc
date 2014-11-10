@@ -138,6 +138,8 @@ set(libs
 	libreadline.so.6
 	libafpclient.so.0
 	libffi.so.6
+	libaacs.so.0
+	libbdplus.so.0
 )
 
 foreach(lib ${libs})

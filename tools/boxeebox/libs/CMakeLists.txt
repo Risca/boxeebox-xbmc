@@ -418,13 +418,34 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
+    libaacs
+    URL                   ftp://ftp.videolan.org/pub/videolan/libaacs/0.7.1/libaacs-0.7.1.tar.bz2
+	URL_MD5               3f475fa71352b454a62bcde860e8681c
+	PATCH_COMMAND         patch -p1 < ${CMAKE_SOURCE_DIR}/libaacs.patch
+    CONFIGURE_COMMAND     CFLAGS=-std=gnu99 ${BASIC_CONF} --disable-werror --disable-examples --disable-extra-warnings --disable-optimizations --disable-debug ac_cv_path_GPG_ERROR_CONFIG=${TARGET_DIR}/bin/gpg-error-config ac_cv_path_LIBGCRYPT_CONFIG=${TARGET_DIR}/bin/libgcrypt-config
+    BUILD_COMMAND         make
+    INSTALL_COMMAND       make install
+	DEPENDS               libgcrypt libgpg-error
+)
+
+ExternalProject_Add(
+    libbdplus
+    URL                   ftp://ftp.videolan.org/pub/videolan/libbdplus/0.1.1/libbdplus-0.1.1.tar.bz2
+	URL_MD5               1c7135d9a58372f15a28a5437e7e7bb8
+	CONFIGURE_COMMAND     ${BASIC_CONF} --with-libaacs --disable-werror --disable-extra-warnings --disable-optimizations ac_cv_path_GPG_ERROR_CONFIG=${TARGET_DIR}/bin/gpg-error-config ac_cv_path_LIBGCRYPT_CONFIG=${TARGET_DIR}/bin/libgcrypt-config
+    BUILD_COMMAND         make
+    INSTALL_COMMAND       make install
+	DEPENDS               libgcrypt libgpg-error
+)
+
+ExternalProject_Add(
     libbluray
     URL                         ftp://ftp.videolan.org/pub/videolan/libbluray/0.6.2/libbluray-0.6.2.tar.bz2
     URL_MD5                     f4d2f2cab53f976cbb22cbae069057bd
     CONFIGURE_COMMAND           ${BASIC_CONF} --disable-examples --disable-doxygen-doc
     BUILD_COMMAND               make
     INSTALL_COMMAND             make install
-    DEPENDS                     libxml2  freetype2
+    DEPENDS                     libxml2  freetype2 libaacs libbdplus
 )
 
 ExternalProject_Add(
