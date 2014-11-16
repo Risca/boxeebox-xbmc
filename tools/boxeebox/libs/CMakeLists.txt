@@ -393,6 +393,42 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
+	lame
+	URL					http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download
+	URL_MD5				84835b313d4a8b68f5349816d33e07ce
+	CONFIGURE_COMMAND   ${BASIC_CONF}  
+	BUILD_COMMAND       make
+	BUILD_IN_SOURCE     1
+)
+
+ExternalProject_Add(
+	kodi-audioencoder-flac
+	GIT_REPOSITORY        https://github.com/xbmc/audioencoder.flac.git
+	CONFIGURE_COMMAND     ${BASIC_CMAKE}
+	DEPENDS               flac
+)
+
+ExternalProject_Add(
+	kodi-audioencoder-lame
+	GIT_REPOSITORY        https://github.com/xbmc/audioencoder.lame.git
+	CONFIGURE_COMMAND     ${BASIC_CMAKE}
+	DEPENDS               lame
+)
+
+ExternalProject_Add(
+	kodi-audioencoder-vorbis
+	GIT_REPOSITORY        https://github.com/xbmc/audioencoder.vorbis.git
+	CONFIGURE_COMMAND     ${BASIC_CMAKE}
+	DEPENDS               libvorbis
+)
+
+ExternalProject_Add(
+	kodi-audioencoder-wav
+	GIT_REPOSITORY        https://github.com/xbmc/audioencoder.wav.git
+	CONFIGURE_COMMAND     ${BASIC_CMAKE}
+)
+
+ExternalProject_Add(
 	libao
 	URL 			http://downloads.xiph.org/releases/ao/libao-1.2.0.tar.gz
 	URL_MD5 		9f5dd20d7e95fd0dd72df5353829f097

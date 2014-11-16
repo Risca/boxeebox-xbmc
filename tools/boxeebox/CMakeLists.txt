@@ -139,6 +139,7 @@ set(libs
 	libreadline.so.6
 	libafpclient.so.0
 	libffi.so.6
+	libmp3lame.so.0
 )
 
 foreach(lib ${libs})

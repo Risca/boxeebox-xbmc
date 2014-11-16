@@ -607,7 +607,6 @@ case $host in
 	    use_arch="x86"
 	    use_cpu="i686"
 	    use_gles=yes
-	    use_optical_drive=no
 	    use_sdl=no
 	    use_x11=no
 	    USE_STATIC_FFMPEG=1     
