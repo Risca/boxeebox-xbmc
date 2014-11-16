@@ -394,8 +394,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
 	lame
-	URL					http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download
-	URL_MD5				84835b313d4a8b68f5349816d33e07ce
+	URL                 http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download
+	URL_MD5             84835b313d4a8b68f5349816d33e07ce
 	CONFIGURE_COMMAND   ${BASIC_CONF}  
 	BUILD_COMMAND       make
 	BUILD_IN_SOURCE     1
