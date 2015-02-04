@@ -496,6 +496,7 @@
     <ClCompile Include="..\..\xbmc\GUIPassword.cpp" />
     <ClCompile Include="..\..\xbmc\input\ButtonTranslator.cpp" />
     <ClCompile Include="..\..\xbmc\input\InertialScrollingHandler.cpp" />
+    <ClCompile Include="..\..\xbmc\input\InputManager.cpp" />
     <ClCompile Include="..\..\xbmc\input\KeyboardLayout.cpp" />
     <ClCompile Include="..\..\xbmc\input\KeyboardLayoutConfiguration.cpp" />
     <ClCompile Include="..\..\xbmc\input\KeyboardStat.cpp" />
@@ -638,6 +639,7 @@
     <ClCompile Include="..\..\xbmc\network\GUIDialogNetworkSetup.cpp" />
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPFileHandler.cpp" />
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPImageHandler.cpp" />
+    <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPImageTransformationHandler.cpp" />
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPJsonRpcHandler.cpp" />
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPVfsHandler.cpp" />
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\HTTPWebinterfaceAddonsHandler.cpp" />
@@ -880,6 +882,7 @@
     <ClInclude Include="..\..\xbmc\guilib\imagefactory.h" />
     <ClInclude Include="..\..\xbmc\guilib\ISliderCallback.h" />
     <ClInclude Include="..\..\xbmc\IFileItemListModifier.h" />
+    <ClInclude Include="..\..\xbmc\input\InputManager.h" />
     <ClInclude Include="..\..\xbmc\input\touch\generic\GenericTouchActionHandler.h" />
     <ClInclude Include="..\..\xbmc\input\touch\generic\GenericTouchSwipeDetector.h" />
     <ClInclude Include="..\..\xbmc\input\touch\generic\IGenericTouchGestureDetector.h" />
@@ -942,6 +945,7 @@
     <ClInclude Include="..\..\xbmc\media\MediaType.h" />
     <ClInclude Include="..\..\xbmc\music\karaoke\karaokevideobackground.h" />
     <ClInclude Include="..\..\xbmc\network\httprequesthandler\HTTPFileHandler.h" />
+    <ClInclude Include="..\..\xbmc\network\httprequesthandler\HTTPImageTransformationHandler.h" />
     <ClInclude Include="..\..\xbmc\network\NetworkServices.h" />
     <ClInclude Include="..\..\xbmc\peripherals\bus\virtual\PeripheralBusCEC.h" />
     <ClInclude Include="..\..\xbmc\network\upnp\UPnPSettings.h" />
