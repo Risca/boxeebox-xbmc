@@ -24,9 +24,7 @@
 #include "utils/StringUtils.h"
 #include "GUIInfoManager.h"
 #include <list>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/pointer_cast.hpp>
+#include <memory>
 
 using namespace std;
 using namespace INFO;
@@ -48,7 +46,7 @@ InfoExpression::InfoExpression(const std::string &expression, int context)
   if (!Parse(expression))
   {
     CLog::Log(LOGERROR, "Error parsing boolean expression %s", expression.c_str());
-    m_expression_tree = boost::make_shared<InfoLeaf>(g_infoManager.Register("false", 0), false);
+    m_expression_tree = std::make_shared<InfoLeaf>(g_infoManager.Register("false", 0), false);
   }
 }
 
@@ -95,7 +93,7 @@ void InfoExpression::InfoAssociativeGroup::AddChild(const InfoSubexpressionPtr &
   m_children.push_front(child); // largely undoes the effect of parsing right-associative
 }
 
-void InfoExpression::InfoAssociativeGroup::Merge(boost::shared_ptr<InfoAssociativeGroup> other)
+void InfoExpression::InfoAssociativeGroup::Merge(std::shared_ptr<InfoAssociativeGroup> other)
 {
   m_children.splice(m_children.end(), other->m_children);
 }
@@ -176,7 +174,7 @@ void InfoExpression::OperatorPop(std::stack<operator_t> &operator_stack, bool &i
        *               /   \     /   \         leaf leaf leaf leaf
        *             leaf leaf leaf leaf
        */
-      boost::static_pointer_cast<InfoAssociativeGroup>(left)->Merge(boost::static_pointer_cast<InfoAssociativeGroup>(right));
+      std::static_pointer_cast<InfoAssociativeGroup>(left)->Merge(std::static_pointer_cast<InfoAssociativeGroup>(right));
     else if (left_type == new_type)
       /* For example:        AND                    AND
        *                   /     \                /  |  \
@@ -184,7 +182,7 @@ void InfoExpression::OperatorPop(std::stack<operator_t> &operator_stack, bool &i
        *               /   \     /   \                  /   \
        *             leaf leaf leaf leaf              leaf leaf
        */
-      boost::static_pointer_cast<InfoAssociativeGroup>(left)->AddChild(right);
+      std::static_pointer_cast<InfoAssociativeGroup>(left)->AddChild(right);
     else
     {
       nodes.pop();
@@ -196,7 +194,7 @@ void InfoExpression::OperatorPop(std::stack<operator_t> &operator_stack, bool &i
          *               /   \     /   \           /   \
          *             leaf leaf leaf leaf       leaf leaf
          */
-        boost::static_pointer_cast<InfoAssociativeGroup>(right)->AddChild(left);
+        std::static_pointer_cast<InfoAssociativeGroup>(right)->AddChild(left);
         nodes.push(right);
       }
       else
@@ -206,7 +204,7 @@ void InfoExpression::OperatorPop(std::stack<operator_t> &operator_stack, bool &i
          *               /   \     /   \        as children
          *             leaf leaf leaf leaf
          */
-        nodes.push(boost::make_shared<InfoAssociativeGroup>(new_type, left, right));
+        nodes.push(std::make_shared<InfoAssociativeGroup>(new_type, left, right));
     }
   }
 }
@@ -254,7 +252,7 @@ bool InfoExpression::Parse(const std::string &expression)
         }
         /* Propagate any listItem dependency from the operand to the expression */
         m_listItemDependent |= info->ListItemDependent();
-        nodes.push(boost::make_shared<InfoLeaf>(info, invert));
+        nodes.push(std::make_shared<InfoLeaf>(info, invert));
         /* Reuse operand string for next operand */
         operand.clear();
       }
@@ -305,7 +303,7 @@ bool InfoExpression::Parse(const std::string &expression)
     }
     /* Propagate any listItem dependency from the operand to the expression */
     m_listItemDependent |= info->ListItemDependent();
-    nodes.push(boost::make_shared<InfoLeaf>(info, invert));
+    nodes.push(std::make_shared<InfoLeaf>(info, invert));
   }
   while (!operator_stack.empty())
     OperatorPop(operator_stack, invert, nodes);

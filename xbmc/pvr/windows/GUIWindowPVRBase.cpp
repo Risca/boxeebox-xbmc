@@ -554,7 +554,7 @@ bool CGUIWindowPVRBase::ActionPlayEpg(CFileItem *item)
 
   CFileItem fileItem;
   if (epgTag->HasRecording())
-    fileItem = CFileItem(*epgTag->Recording());
+    fileItem = CFileItem(epgTag->Recording());
   else
     fileItem = CFileItem(*channel);
 

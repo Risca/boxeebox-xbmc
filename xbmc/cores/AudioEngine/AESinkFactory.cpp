@@ -51,6 +51,8 @@
 #include "utils/SystemInfo.h"
 #include "utils/log.h"
 
+#include <algorithm>
+
 void CAESinkFactory::ParseDevice(std::string &device, std::string &driver)
 {
   int pos = device.find_first_of(':');
