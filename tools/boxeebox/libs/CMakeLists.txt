@@ -719,18 +719,6 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
-	libenca
-	URL                 https://github.com/nijel/enca/archive/1.16.tar.gz
-	URL_MD5             4f39869a757e96deb372884e6f474a27
-	PATCH_COMMAND       sed -i -e "s,.(AM_V_CC).(COMPILE),cc," "tools/Makefile.in"
-	COMMAND             sed -i -e "s,.(AM_V_CCLD).(LINK),cc -o \$@," "tools/Makefile.in" VERBATIM
-	CONFIGURE_COMMAND   ac_cv_file__dev_random=yes ac_cv_file__dev_urandom=no ac_cv_file__dev_srandom=no ac_cv_file__dev_arandom=no ${BASIC_CONF} --disable-external --without-librecode --disable-rpath --with-gnu-ld
-	BUILD_COMMAND       make
-	BUILD_IN_SOURCE     1
-	DEPENDS             avahi
-)
-
-ExternalProject_Add(
 	libass
 	GIT_REPOSITORY   	https://github.com/libass/libass.git
 	GIT_TAG                 0.12.0
