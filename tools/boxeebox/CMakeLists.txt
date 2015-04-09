@@ -113,7 +113,6 @@ set(libs
 	libcrypto.so.1.0.0
 	libcurl.so.4
 	libdbus-1.so
-	libenca.so.0
 	libexpat.so
 	libffi.so.6
 	libFLAC.so
