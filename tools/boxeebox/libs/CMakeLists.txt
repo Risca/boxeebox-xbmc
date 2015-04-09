@@ -330,8 +330,8 @@ ExternalProject_Add(
 	fontconfig
 	URL 			http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.1.tar.gz
 	URL_MD5 		e75e303b4f7756c2b16203a57ac87eba
-	CONFIGURE_COMMAND 	${BASIC_CONF} --with-default-fonts=/usr/share/fonts/liberation --disable-docs --without-add-fonts --disable-dependency-tracking ac_cv_path_FREETYPE_CONFIG=${SYSROOT}/usr/local/bin/freetype-config
-	DEPENDS fribidi freetype2 zlib expat libxml2
+	CONFIGURE_COMMAND 	${BASIC_CONF} --disable-libxml2 --disable-docs --with-arch=i686 ac_cv_path_FREETYPE_CONFIG=${SYSROOT}/usr/local/bin/freetype-config
+	DEPENDS fribidi freetype2 zlib expat
 )
 
 ExternalProject_Add(
