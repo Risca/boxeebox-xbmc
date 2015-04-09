@@ -812,13 +812,13 @@ ExternalProject_Add(
 ExternalProject_Add(
 	ffmpeg
 	GIT_REPOSITORY           https://github.com/xbmc/FFmpeg.git
-	GIT_TAG                  2.4.6-Helix 
+	GIT_TAG                  2.6.0-fix-Isengard-alpha 
 	PATCH_COMMAND            sed -i".bak" -e "s%pkg_config_default=pkg-config%export PKG_CONFIG_LIBDIR=${TARGET_DIR}/lib/pkgconfig:${SYSROOT}/usr/lib/pkgconfig%" configure
-	CONFIGURE_COMMAND        <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --cross-prefix=${TARGET}- --enable-cross-compile --target-os=linux --sysroot=${SYSROOT} --extra-ldflags=-L${TARGET_DIR}/lib --extra-cflags=-L${TARGET_DIR}/include --arch=i686 --cpu=i686 --enable-shared --disable-static --sysinclude={TARGET_DIR}/include --disable-programs --enable-gpl --disable-devices --disable-doc --disable-ffplay --disable-ffmpeg --disable-ffprobe --disable-ffserver --enable-runtime-cpudetect --enable-postproc --enable-pthreads --enable-muxer=spdif --enable-muxer=adts --enable-muxer=asf --enable-muxer=mpegts --enable-muxer=ipod --enable-encoder=ac3 --enable-encoder=aac --enable-encoder=wmav2 --enable-protocol=http --disable-vaapi --disable-vdpau --enable-nonfree --enable-asm --enable-libvorbis --enable-muxer=ogg --enable-encoder=libvorbis --enable-bzlib --enable-optimizations --enable-yasm --enable-gnutls --enable-zlib --extra-libs=-lrt --extra-libs=-lpthread --extra-libs=-lgnutls --extra-libs=-lnettle --extra-libs=-lhogweed --extra-libs=-lgmp --extra-libs=-lz --incdir=${TARGET}/include --libdir=${TARGET}/lib --pkg-config=pkg-config
+	CONFIGURE_COMMAND        <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --cross-prefix=${TARGET}- --enable-cross-compile --target-os=linux --sysroot=${SYSROOT} --extra-ldflags=-L${TARGET_DIR}/lib --extra-cflags=-L${TARGET_DIR}/include --arch=i686 --cpu=i686 --enable-shared --disable-static --sysinclude={TARGET_DIR}/include --disable-programs --enable-gpl --disable-devices --disable-doc --disable-ffplay --disable-ffmpeg --disable-ffprobe --disable-ffserver --enable-runtime-cpudetect --enable-postproc --enable-pthreads --enable-muxer=spdif --enable-muxer=adts --enable-muxer=asf --enable-muxer=mpegts --enable-muxer=ipod --enable-encoder=ac3 --enable-encoder=aac --enable-encoder=wmav2 --enable-protocol=http --disable-vaapi --disable-vdpau --enable-nonfree --disable-asm --enable-libvorbis --enable-muxer=ogg --enable-encoder=libvorbis --enable-bzlib --enable-optimizations --disable-yasm --enable-gnutls --enable-zlib --extra-libs=-lrt --extra-libs=-lpthread --extra-libs=-lgnutls --extra-libs=-lnettle --extra-libs=-lhogweed --extra-libs=-lgmp --extra-libs=-lz --incdir=${TARGET}/include --libdir=${TARGET}/lib --pkg-config=pkg-config
 	UPDATE_COMMAND           ""
 	BUILD_COMMAND            make ${PARALLEL}
 	INSTALL_COMMAND          make install
 	COMMAND                  ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_BINARY_DIR}/ffmpeg-prefix/src/ffmpeg-build/i686-pc-linux-gnu/include ${TARGET_DIR}/include
-	COMMAND                  ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_BINARY_DIR}/ffmpeg-prefix/src/ffmpeg-build/i686-pc-linux-gnu/lib/pkgconfig ${TARGET_DIR}/lib/pkgconfig
-	DEPENDS                  yasm gnutls zlib bzip2 libvorbis nettle
+	COMMAND                  ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_BINARY_DIR}/ffmpeg-prefix/src/ffmpeg-build/i686-pc-linux-gnu/lib ${TARGET_DIR}/lib
+	DEPENDS                  gnutls zlib bzip2 libvorbis nettle
 )
