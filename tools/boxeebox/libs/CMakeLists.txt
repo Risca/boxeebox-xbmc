@@ -342,7 +342,6 @@ ExternalProject_Add(
 	BUILD_COMMAND           make
 	INSTALL_COMMAND         make install
 	BUILD_IN_SOURCE         1
-	DEPENDS                 yasm
 )
 
 ExternalProject_Add(
