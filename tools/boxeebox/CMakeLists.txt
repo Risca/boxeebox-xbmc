@@ -103,7 +103,7 @@ set(libs
 	airport.key
 	libafpclient.so.0
 	libao.so
-	libass.so.5
+	libass.so.4
 	libavahi-client.so.3
 	libavahi-common.so.3
 	libavahi-core.so.7
