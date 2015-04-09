@@ -26,15 +26,6 @@ string(REPLACE "\n" "" HOSTMACHINE ${HOSTMACHINE})
 include(ExternalProject)
 
 ExternalProject_Add(
-    yasm
-    URL                   http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
-    URL_MD5               4cfc0686cf5350dd1305c4d905eb55a6
-    CONFIGURE_COMMAND     ${BASIC_CONF} --disable-warnerror --disable-profiling --disable-gcov --disable-python --disable-python-bindings --enable-nls --disable-rpath --without-dmalloc --with-gnu-ld --without-libiconv-prefix --without-libintl-prefix --disable-debug
-    BUILD_COMMAND         make
-    INSTALL_COMMAND       make install
-)
-
-ExternalProject_Add(
 	libgpg-error
 	URL 			ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.12.tar.bz2
 	URL_MD5 		8f0eb41a344d19ac2aa9bd101dfb9ce6
