@@ -711,12 +711,11 @@ ExternalProject_Add(
 
 ExternalProject_Add(
 	libass
-	GIT_REPOSITORY   	https://github.com/libass/libass.git
-	GIT_TAG                 0.12.0
-	UPDATE_COMMAND           ""
-	PATCH_COMMAND           ./autogen.sh
-	CONFIGURE_COMMAND 	${BASIC_CONF} --with-gnu-ld --enable-enca --enable-fontconfig --disable-harfbuzz --disable-silent-rules --enable-asm --disable-test
-	DEPENDS libpng libenca fribidi freetype2 fontconfig yasm
+	URL                     http://libass.googlecode.com/files/libass-0.10.1.tar.gz
+	URL_MD5                 6cace482a013a3c4bf3b31a68ac66026
+	UPDATE_COMMAND          ""
+	CONFIGURE_COMMAND 	${BASIC_CONF} --with-gnu-ld --disable-enca --enable-fontconfig --disable-harfbuzz --disable-silent-rules --disable-test
+	DEPENDS libpng fribidi freetype2 fontconfig
 )
 
 ExternalProject_Add(
