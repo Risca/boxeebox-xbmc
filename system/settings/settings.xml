@@ -425,7 +425,7 @@
         </setting>
         <setting id="videoplayer.usedisplayasclock" type="boolean" label="13510" help="36166">
           <level>2</level>
-          <default>false</default>
+          <default>true</default>
           <control type="toggle" />
         </setting>
         <setting id="videoplayer.synctype" type="integer" parent="videoplayer.usedisplayasclock" label="13500" help="36167">
