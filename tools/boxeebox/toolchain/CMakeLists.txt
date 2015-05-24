@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 set(TARGET "i686-pc-linux-gnu")
 set(TARGET_DIR "${SYSROOT}/usr")
 
-set(BINUTILS_VERSION "2.18" CACHE STRING "Version of binutils to build")
-set(GCC_VERSION "4.2.1" CACHE STRING "Version of GCC to build")
+set(BINUTILS_VERSION "2.24" CACHE STRING "Version of binutils to build")
+set(GCC_VERSION "4.9.2" CACHE STRING "Version of GCC to build")
 set(ENABLE_GDB OFF CACHE BOOL "Wether to build gdb or not")
 
 include(ExternalProject)
@@ -29,8 +29,8 @@ ExternalProject_Add(
 	boot-binutils
 	PREFIX 				${CMAKE_BINARY_DIR}/binutils
 	URL 				http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.bz2
-	URL_MD5 			ccd264a5fa9ed992a21427c69cba91d3
-	PATCH_COMMAND 		sed -e "6128,6135d" -i.bak configure # prevents binutls from failing due to newer makeinfo
+	URL_MD5 			e0f71a7b2ddab0f8612336ac81d9636b
+	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/binutils-2.24-multi_os_directory.patch
 	CONFIGURE_COMMAND	 <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --with-lib-path=${TARGET_DIR}/lib --prefix=${TARGET_DIR} --target ${TARGET} --disable-nls --disable-werror --program-prefix=${TARGET}-
 	BUILD_COMMAND		make ${PARALLEL}
 	DEPENDS 			kernel
@@ -40,25 +40,29 @@ ExternalProject_Add(
 	boot-gcc
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
-	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --enable-bootstrap  #--disable-libquadmath  --disable-libatomic
-	BUILD_COMMAND		make all-gcc ${PARALLEL}
-	INSTALL_COMMAND make install-gcc
-		COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc.a  ${TARGET_DIR}/lib/gcc/${TARGET}/${GCC_VERSION}/libgcc_eh.a
+	URL_MD5 			4df8ee253b7f3863ad0b86359cd39c43
+	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-4.8.2-disable_multilib_i386_linux64.patch
+	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-allow-newer-autoconf.patch
+		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-crosscompile-badness.patch
+		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-dynamic_linker.patch	
+	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include  --disable-libstdcxx --disable-libquadmath --disable-libatomic #--enable-bootstrap --disable-libquadmath  --disable-libatomic
+	BUILD_COMMAND		make ${PARALLEL}
+	INSTALL_COMMAND		make install
+#		COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_DIR}/lib/gcc/${TARGET}/4.9.2/libgcc.a  ${TARGET_DIR}/lib/gcc/${TARGET}/4.9.2/libgcc_eh.a
 	DEPENDS 			boot-binutils
 )
 
 ExternalProject_Add(
 	glibc
-	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.7.tar.bz2
-	URL_MD5 			065c5952b439deba40083ccd67bcc8f7
-	PATCH_COMMAND		cat elf/Makefile | sed s,\ readelf\ ,\ ${PREFIX}/bin/${TARGET}-readelf\ ,g > elf/Makefile.new
-		COMMAND 		${CMAKE_COMMAND} -E copy elf/Makefile.new elf/Makefile
-		COMMAND 		cat configure | sed s,\ readelf\ ,\ ${TARGET_DIR}/bin/${TARGET}-readelf\ ,g > configure.new
-		COMMAND 		${CMAKE_COMMAND} -E copy configure.new configure
-		COMMAND 		chmod +x configure
-	BUILD_COMMAND		make ${PARALLEL}
-	CONFIGURE_COMMAND	CC=${TARGET}-gcc <SOURCE_DIR>/configure --build=${HOSTMACHINE} --target=${TARGET} --host=${TARGET} --disable-nls --enable-kernel=2.6.28 --prefix=/usr --with-headers=${TARGET_DIR}/include libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes CFLAGS=-O2\ -march=i686 --program-prefix=${TARGET}-
+	URL 				http://ftp.gnu.org/gnu/glibc/glibc-2.19.tar.bz2
+	URL_MD5 			3ca28f5099257aade61b1adedb7e3401
+	# PATCH_COMMAND		cat elf/Makefile | sed s,\ readelf\ ,\ ${PREFIX}/bin/${TARGET}-readelf\ ,g > elf/Makefile.new
+	# 	COMMAND 		${CMAKE_COMMAND} -E copy elf/Makefile.new elf/Makefile
+	# 	COMMAND 		cat configure | sed s,\ readelf\ ,\ ${TARGET_DIR}/bin/${TARGET}-readelf\ ,g > configure.new
+	# 	COMMAND 		${CMAKE_COMMAND} -E copy configure.new configure
+	# 	COMMAND 		chmod +x configure
+	# BUILD_COMMAND		export BUILD_CFLAGS=-I/usr/local/Cellar/gettext/0.19.4/include/ && export BUILD_LDFLAGS=-L/usr/local/Cellar/gettext/0.19.4/lib/\ -lintl && make ${PARALLEL}
+	CONFIGURE_COMMAND	PATH=$ENV{PATH}:${TARGET_DIR}/bin/ CC=$ENV{TARGETCC} <SOURCE_DIR>/configure --build=${HOSTMACHINE} --target=${TARGET} --host=${TARGET} --enable-kernel=2.6.28 --disable-multiarch --prefix=/usr --with-headers=${TARGET_DIR}/include --program-prefix=${TARGET}-  libc_cv_ssp=no # ac_cv_prog_BUILD_CC=/usr/local/bin/gcc-4.9 libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes
 	INSTALL_COMMAND		make ${PARALLEL} install_root=${SYSROOT} install
 	DEPENDS boot-gcc
 )
@@ -67,8 +71,12 @@ ExternalProject_Add(
 	gcc2
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
-	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
-	CONFIGURE_COMMAND	ac_cv_header_sys_filio_h=no <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --program-prefix=${TARGET}-
+	URL_MD5 			4df8ee253b7f3863ad0b86359cd39c43
+	PATCH_COMMAND       patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-4.8.2-disable_multilib_i386_linux64.patch
+	    COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-allow-newer-autoconf.patch
+		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-crosscompile-badness.patch
+		COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/gcc-patches/gcc-dynamic_linker.patch
+	CONFIGURE_COMMAND	ac_cv_header_sys_filio_h=no <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=/usr/include --program-prefix=${TARGET}-
 	BUILD_COMMAND 		ac_cv_header_sys_filio_h=no make ${PARALLEL}
 	DEPENDS 			glibc
 )
