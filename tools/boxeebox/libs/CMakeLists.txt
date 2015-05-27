@@ -690,11 +690,11 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libass
-    URL                   http://libass.googlecode.com/files/libass-0.10.1.tar.gz
-    URL_MD5               6cace482a013a3c4bf3b31a68ac66026
+    URL                   https://github.com/libass/libass/releases/download/0.12.2/libass-0.12.2.tar.gz
+    URL_MD5               b5a85fbaebd20f377d1521c9ca45852c
     UPDATE_COMMAND        ""
-    CONFIGURE_COMMAND     ${BASIC_CONF} --with-gnu-ld --disable-enca --enable-fontconfig --disable-harfbuzz --disable-silent-rules --disable-test
-    DEPENDS               libpng fribidi freetype2 fontconfig zlib iconv ncurses
+    CONFIGURE_COMMAND     ${BASIC_CONF} --with-gnu-ld --disable-enca --enable-fontconfig --disable-harfbuzz --disable-silent-rules --disable-test --enable-asm
+    DEPENDS               libpng fribidi freetype2 fontconfig zlib iconv ncurses yasm
 )
 
 ExternalProject_Add(
