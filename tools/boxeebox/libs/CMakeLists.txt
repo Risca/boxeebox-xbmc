@@ -510,11 +510,13 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     rtmpdump
-    GIT_REPOSITORY        https://github.com/BurntSushi/rtmpdump-ksv.git
+    GIT_REPOSITORY        git://git.ffmpeg.org/rtmpdump
     CONFIGURE_COMMAND     ""
     UPDATE_COMMAND        ""
-    BUILD_COMMAND         make CRYPTO=OPENSSL DESTDIR=${SYSROOT} LIBS_posix=-L${TARGET_DIR}/lib XLIBS=-ldl INC=-I${TARGET_DIR}/include CROSS_COMPILE=${TARGET}-
-    INSTALL_COMMAND       make install DESTDIR=${SYSROOT}
+    PATCH_COMMAND         patch -p0 < ${CMAKE_SOURCE_DIR}/rtmpdump-patches/prefix.patch
+        COMMAND           patch -p0 < ${CMAKE_SOURCE_DIR}/rtmpdump-patches/Patch.diff
+    BUILD_COMMAND         make CROSS_COMPILE=${TARGET}- SYS=posix prefix=${SYSROOT}/usr/local INC=-I${SYSROOT}/usr/local/include XLDFLAGS=-L${SYSROOT}/usr/local/lib CRYPTO=OPENSSL XLIBS=-ldl
+    INSTALL_COMMAND       make install DESTDIR=${SYSROOT} 
     BUILD_IN_SOURCE       1
     DEPENDS               zlib openssl iconv ncurses
 )
@@ -525,7 +527,7 @@ ExternalProject_Add(
     GIT_TAG               curl-7_41_0
     PATCH_COMMAND         ./buildconf
     UPDATE_COMMAND        ""
-    CONFIGURE_COMMAND     LDFLAGS=-L${SYSROOT}/usr/local/lib LIBS=-ldl CFLAGS=-I${SYSROOT}/usr/local/include ${BASIC_CONF} --prefix=${SYSROOT}/usr/local --with-ssl --with-librtmp --disable-debug --enable-optimize --enable-warnings --disable-manual --disable-curldebug --disable-ares --enable-largefile --enable-http --enable-https --enable-file--disable-ldap --disable-ldaps --disable-rtsp --enable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gophper --enable-ipv6 --enable-versioned-symbols --enable-nonblocking --enable-verbose --disable-sspi --enable-crypto-auth --enable-cookies --enable-hidden-symbols --disable-soname-bump --with-gnu-ld --without-krb4 --without-spnego --without-gssapi --with-zlib --without-egd-socket --without-polarssl --without-nss --without-ca-path --without-libssh2 --without-libidn --without-gnutls --enable-threaded-resolver
+    CONFIGURE_COMMAND     LDFLAGS=-L${SYSROOT}/usr/local/lib CFLAGS=-I${SYSROOT}/usr/local/include ${BASIC_CONF} --prefix=${SYSROOT}/usr/local --with-ssl LIBS=-lssl\ -lcrypto\ -lz\ -ldl\ -lm --with-librtmp --disable-debug --enable-optimize --enable-warnings --disable-manual --disable-curldebug --disable-ares --enable-largefile --enable-http --enable-https --enable-file--disable-ldap --disable-ldaps --disable-rtsp --enable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gophper --enable-ipv6 --enable-versioned-symbols --enable-nonblocking --enable-verbose --disable-sspi --enable-crypto-auth --enable-cookies --enable-hidden-symbols --disable-soname-bump --with-gnu-ld --without-krb4 --without-spnego --without-gssapi --with-zlib --without-egd-socket --without-polarssl --without-nss --without-ca-path --without-libssh2 --without-libidn --without-gnutls --enable-threaded-resolver
     BUILD_COMMAND         make
     DEPENDS               openssl zlib bzip2 rtmpdump libgcrypt iconv ncurses libgcrypt
 )
