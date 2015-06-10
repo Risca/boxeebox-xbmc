@@ -452,9 +452,9 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libbluray
-    URL                   ftp://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
-    URL_MD5               efad766330164f0c7c7cb18f66389870
-    CONFIGURE_COMMAND     ${BASIC_CONF} --disable-examples --disable-doxygen-doc
+    URL                   ftp://ftp.videolan.org/pub/videolan/libbluray/0.8.1/libbluray-0.8.1.tar.bz2
+    URL_MD5               c7a89966ad091fa6075a58d31a698e70
+    CONFIGURE_COMMAND     ${BASIC_CONF} --disable-examples --disable-doxygen-doc --disable-bdjava --enable-udf --disable-werror
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
     DEPENDS               libxml2  freetype2 zlib iconv ncurses
