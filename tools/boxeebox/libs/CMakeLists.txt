@@ -498,7 +498,7 @@ ExternalProject_Add(
 ExternalProject_Add(
     nfs
     GIT_REPOSITORY        https://github.com/sahlberg/libnfs.git
-    GIT_TAG               6da5bc1cc70bb0f786e1f1d595236007187d603a
+    GIT_TAG               68b0298102b510521e0c16b1f41d4bbfb0dd99e8
     UPDATE_COMMAND        ""
     PATCH_COMMAND         patch -p1 < ${CMAKE_SOURCE_DIR}/libnfs-patches/0001-Sequential-Readahead-Mode.patch
 	    COMMAND           ./bootstrap
