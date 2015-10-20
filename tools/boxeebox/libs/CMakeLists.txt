@@ -267,8 +267,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     sqlite
-    URL                   http://www.sqlite.org/2015/sqlite-autoconf-3081002.tar.gz
-    URL_MD5               a18bfc015cd49a1e7a961b7b77bc3b37
+    URL                   http://www.sqlite.org/2015/sqlite-autoconf-3090100.tar.gz
+    URL_MD5               74931054399a2d7acf35637efe8d6f45
     CONFIGURE_COMMAND     <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET}  --disable-shared --enable-static --enable-threadsafe --disable-readline --enable-dynamic-extensions
     BUILD_COMMAND         make CXXFLAGS+=-DSQLITE_ENABLE_COLUMN_METADATA=1 CFLAGS+=-DSQLITE_TEMP_STORE=3  CFLAGS+=-DSQLITE_ENABLE_STAT3 CFLAGS+=-DSQLITE_DEFAULT_MMAP_SIZE=268435456
     DEPENDS               zlib iconv ncurses
