@@ -462,8 +462,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libssh
-    URL                   https://red.libssh.org/attachments/download/140/libssh-0.7.0.tar.xz
-    URL_MD5               cf20c3bb6edfc853187985c3f649ca80
+    URL                   https://red.libssh.org/attachments/download/177/libssh-0.7.2.tar.xz
+    URL_MD5               5d7d468937649a6dfc6186edfff083db
     PATCH_COMMAND
     COMMAND               patch -p0 < ${CMAKE_SOURCE_DIR}/md5.patch
     COMMAND               sed -e "s,add_subdirectory\(examples\),,g" -i.bak CMakeLists.txt
