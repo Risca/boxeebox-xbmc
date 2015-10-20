@@ -207,8 +207,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     openssl
-    URL                   http://www.openssl.org/source/openssl-1.0.2a.tar.gz
-    URL_MD5               a06c547dac9044161a477211049f60ef
+    URL                   http://www.openssl.org/source/openssl-1.0.2d.tar.gz
+    URL_MD5               38dd619b2e77cbac69b99f52a053d25a
     CONFIGURE_COMMAND     CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib AR=${TARGET}-ar <SOURCE_DIR>/Configure --prefix=${SYSROOT}/usr/local shared --openssldir=/ --libdir=lib linux-elf threads enable-camellia enable-seed enable-tlsext enable-rfc3779 enable-cms enable-md2 no-krb5 no-mdc2 no-rc5 no-ec no-ec2mno-ecdh no-ecdsa no-srp
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
