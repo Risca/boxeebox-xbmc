@@ -452,8 +452,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libbluray
-    URL                   ftp://ftp.videolan.org/pub/videolan/libbluray/0.8.1/libbluray-0.8.1.tar.bz2
-    URL_MD5               c7a89966ad091fa6075a58d31a698e70
+    URL                   ftp://ftp.videolan.org/pub/videolan/libbluray/0.9.0/libbluray-0.9.0.tar.bz2
+    URL_MD5               a4e8077b9fd82349c767cef2ba9bd750
     CONFIGURE_COMMAND     ${BASIC_CONF} --disable-examples --disable-doxygen-doc --disable-bdjava --enable-udf --disable-werror
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
