@@ -658,10 +658,8 @@ ExternalProject_Add(
 ExternalProject_Add(
     libshairplay
     GIT_REPOSITORY        http://github.com/juhovh/shairplay.git
-	GIT_TAG               0f41ade2678f374aa8446d127d6aa9d5a3d428da
+    GIT_TAG               498bc5bcdd305e04721f94a04b9f26a7da72673f
     PATCH_COMMAND         ./autogen.sh
-        COMMAND           patch -p1 < ${CMAKE_SOURCE_DIR}/libshairplay-patches/xcode-llmvfix.patch
-        COMMAND           patch -p0 < ${CMAKE_SOURCE_DIR}/libshairplay-patches/01-add_fairplay_handshake.patch
     UPDATE_COMMAND          ""
     CONFIGURE_COMMAND     ${BASIC_CONF} --sysconfdir=/
       BUILD_COMMAND       make
