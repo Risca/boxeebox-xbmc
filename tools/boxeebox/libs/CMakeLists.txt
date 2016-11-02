@@ -781,6 +781,17 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
+    speex
+    URL                   http://downloads.us.xiph.org/releases/speex/speex-1.2rc2.tar.gz
+    URL_MD5               6ae7db3bab01e1d4b86bacfa8ca33e81
+    CONFIGURE_COMMAND     ${BASIC_CONF}
+    BUILD_COMMAND         make
+    INSTALL_COMMAND       make install
+    BUILD_IN_SOURCE       1
+    DEPENDS               openssl gmp zlib iconv ncurses gnutls
+)
+
+ExternalProject_Add(
     ffmpeg
     GIT_REPOSITORY        https://github.com/xbmc/FFmpeg.git
     GIT_TAG               2.8.1-Jarvis-alpha4-HEVC 
