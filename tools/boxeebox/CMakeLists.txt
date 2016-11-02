@@ -162,6 +162,7 @@ set(libs
 	libhogweed.so.2
 	libnettle.so.4
 	libiconv.so.2
+	libspeex.so.1
 )
 
 foreach(lib ${libs})
