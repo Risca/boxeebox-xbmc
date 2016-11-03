@@ -691,8 +691,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libass
-    URL                   https://github.com/libass/libass/releases/download/0.13.0/libass-0.13.0.tar.gz
-    URL_MD5               44290519105b3779b8b25813a25a9914
+    URL                   https://github.com/libass/libass/releases/download/0.13.4/libass-0.13.4.tar.gz
+    URL_MD5               158e242c1bd890866e95526910cb6873
     UPDATE_COMMAND        ""
     CONFIGURE_COMMAND     ${BASIC_CONF} --with-gnu-ld --disable-enca --enable-fontconfig --disable-harfbuzz --disable-silent-rules --disable-test --enable-asm
     DEPENDS               libpng fribidi freetype2 fontconfig zlib iconv ncurses yasm
