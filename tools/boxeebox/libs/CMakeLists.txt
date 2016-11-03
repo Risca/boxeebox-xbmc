@@ -803,5 +803,5 @@ ExternalProject_Add(
     INSTALL_COMMAND       make install
     COMMAND               ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_BINARY_DIR}/ffmpeg-prefix/src/ffmpeg-build/i686-pc-linux-gnu/include ${TARGET_DIR}/include
     COMMAND               ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_BINARY_DIR}/ffmpeg-prefix/src/ffmpeg-build/i686-pc-linux-gnu/lib ${TARGET_DIR}/lib
-    DEPENDS               gnutls zlib bzip2 libvorbis nettle yasm iconv ncurses
+    DEPENDS               gnutls zlib bzip2 libvorbis nettle yasm iconv ncurses speex
 )
