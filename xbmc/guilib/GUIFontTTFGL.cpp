@@ -51,6 +51,7 @@ CGUIFontTTFGL::CGUIFontTTFGL(const CStdString& strFileName)
 
 CGUIFontTTFGL::~CGUIFontTTFGL(void)
 {
+ DeleteHardwareTexture(); 
 }
 
 void CGUIFontTTFGL::Begin()
