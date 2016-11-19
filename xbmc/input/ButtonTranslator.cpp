@@ -23,9 +23,9 @@
 #include "ButtonTranslator.h"
 #include "profiles/ProfilesManager.h"
 #include "utils/URIUtils.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/WindowIDs.h"
-#include "input/XBMC_keysym.h"
+#include "input/MouseStat.h"
 #include "input/XBMC_keytable.h"
 #include "filesystem/File.h"
 #include "filesystem/Directory.h"
@@ -113,6 +113,8 @@ static const ActionMapping actions[] =
         {"nextcalibration"   , ACTION_CALIBRATE_SWAP_ARROWS},
         {"resetcalibration"  , ACTION_CALIBRATE_RESET},
         {"analogmove"        , ACTION_ANALOG_MOVE},
+        {"analogmovex"       , ACTION_ANALOG_MOVE_X},
+        {"analogmovey"       , ACTION_ANALOG_MOVE_Y},
         {"rotate"            , ACTION_ROTATE_PICTURE_CW},
         {"rotateccw"         , ACTION_ROTATE_PICTURE_CCW},
         {"close"             , ACTION_NAV_BACK}, // backwards compatibility
@@ -226,6 +228,7 @@ static const ActionMapping actions[] =
         {"decreasepar"       , ACTION_DECREASE_PAR},
         {"volampup"          , ACTION_VOLAMP_UP},
         {"volampdown"        , ACTION_VOLAMP_DOWN},
+        {"volumeamplification", ACTION_VOLAMP},
         {"createbookmark"        , ACTION_CREATE_BOOKMARK},
         {"createepisodebookmark" , ACTION_CREATE_EPISODE_BOOKMARK},
         {"settingsreset"      , ACTION_SETTINGS_RESET},
@@ -270,7 +273,8 @@ static const ActionMapping actions[] =
         {"swipeup"           , ACTION_GESTURE_SWIPE_UP},
         {"swipedown"         , ACTION_GESTURE_SWIPE_DOWN},
 
-        // Do nothing action
+        // Do nothing / error action
+        { "error"            , ACTION_ERROR},
         { "noop"             , ACTION_NOOP}
 };
 
@@ -435,7 +439,6 @@ static const ActionMapping touchcommands[] =
 static const WindowMapping fallbackWindows[] =
 {
   { WINDOW_FULLSCREEN_LIVETV,          WINDOW_FULLSCREEN_VIDEO },
-  { WINDOW_DIALOG_FULLSCREEN_INFO,     WINDOW_FULLSCREEN_VIDEO },
   { WINDOW_FULLSCREEN_RADIO,           WINDOW_VISUALISATION    }
 };
 
@@ -796,7 +799,6 @@ void CButtonTranslator::MapJoystickFamily(TiXmlNode *pNode)
 
 void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
 {
-  string joyname = JOYSTICK_DEFAULT_MAP; // default global map name
   std::string joyFamilyName;
   map<int, string> buttonMap;
   map<int, string> axisMap;
@@ -804,17 +806,21 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
   ActionMap hatMap;
 
   TiXmlElement *pJoy = pJoystick->ToElement();
-  if (pJoy && pJoy->Attribute("name")) {
+  if (pJoy && pJoy->Attribute("family"))
+    joyFamilyName = pJoy->Attribute("family");
+  else if (pJoy) {
     // transform loose name to new family, including altnames
-    std::string joyName = pJoy->Attribute("name");
+    string joyName = JOYSTICK_DEFAULT_MAP; // default global map name
+    if (pJoy->Attribute("name"))
+      joyName = pJoy->Attribute("name");
     joyFamilyName = joyName;    
     JoystickFamily* joyFamily = &m_joystickFamilies[joyFamilyName];
 
     std::shared_ptr<CRegExp> re(new CRegExp(true, CRegExp::asciiOnly));
-    std::string joyRe = JoynameToRegex(joyname);
+    std::string joyRe = JoynameToRegex(joyName);
     if (!re->RegComp(joyRe, CRegExp::StudyRegExp))
     {
-      CLog::Log(LOGNOTICE, "Invalid joystick regex specified: '%s'", joyname.c_str());
+      CLog::Log(LOGNOTICE, "Invalid joystick regex specified: '%s'", joyName.c_str());
       return;
     }
     AddFamilyRegex(joyFamily, re);
@@ -836,11 +842,6 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
     }
 
   }
-  else if (pJoy && pJoy->Attribute("family"))
-    joyFamilyName = pJoy->Attribute("family");
-  else
-    CLog::Log(LOGNOTICE, "No Joystick name specified, loading default map");
-
 
   // parse map
   TiXmlElement *pButton = pJoystick->FirstChildElement();
@@ -851,6 +852,13 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
     std::string action;
     if (!pButton->NoChildren())
       action = pButton->FirstChild()->ValueStr();
+
+    // skip altname tags here because those contain no mappings ...
+    if (type == "altname")
+    {
+      pButton = pButton->NextSiblingElement();
+      continue;
+    }
 
     if ((pButton->QueryIntAttribute("id", &id) == TIXML_SUCCESS) && id>=0 && id<=256)
     {
@@ -919,9 +927,17 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
 
     pButton = pButton->NextSiblingElement();
   }
-  m_joystickButtonMap[joyFamilyName][windowID].insert(buttonMap.begin(), buttonMap.end());
-  m_joystickAxisMap[joyFamilyName][windowID].insert(axisMap.begin(), axisMap.end());
-  m_joystickHatMap[joyFamilyName][windowID].insert(hatMap.begin(), hatMap.end());
+
+  // add/overwrite keys with mapped actions
+  for (auto button : buttonMap)
+    m_joystickButtonMap[joyFamilyName][windowID][button.first] = button.second;
+
+  for (auto axis : axisMap)
+    m_joystickAxisMap[joyFamilyName][windowID][axis.first] = axis.second;
+
+  for (auto hat : hatMap)
+    m_joystickHatMap[joyFamilyName][windowID][hat.first] = hat.second;
+
   if (windowID == -1) 
     m_joystickAxesConfigs[joyFamilyName] = axesConfig;
 }
@@ -1040,7 +1056,7 @@ bool CButtonTranslator::TranslateJoystickString(int window, const std::string& j
   return (action > 0);
 }
 
-bool CButtonTranslator::TranslateTouchAction(int window, int touchAction, int touchPointers, int &action)
+bool CButtonTranslator::TranslateTouchAction(int window, int touchAction, int touchPointers, int &action, std::string &actionString)
 {
   action = 0;
   if (touchPointers <= 0)
@@ -1049,14 +1065,14 @@ bool CButtonTranslator::TranslateTouchAction(int window, int touchAction, int to
   touchAction += touchPointers - 1;
   touchAction |= KEY_TOUCH;
 
-  action = GetTouchActionCode(window, touchAction);
+  action = GetTouchActionCode(window, touchAction, actionString);
   if (action <= 0)
   {
     int fallbackWindow = GetFallbackWindow(window);
     if (fallbackWindow > -1)
-      action = GetTouchActionCode(fallbackWindow, touchAction);
+      action = GetTouchActionCode(fallbackWindow, touchAction, actionString);
     if (action <= 0)
-      action = GetTouchActionCode(-1, touchAction);
+      action = GetTouchActionCode(-1, touchAction, actionString);
   }
 
   return action > 0;
@@ -1622,7 +1638,7 @@ uint32_t CButtonTranslator::TranslateMouseCommand(TiXmlElement *pButton)
       else
       {
         int id = 0;
-        if ((pButton->QueryIntAttribute("id", &id) == TIXML_SUCCESS) && id>=0 && id<=4)
+        if ((pButton->QueryIntAttribute("id", &id) == TIXML_SUCCESS) && id>=0 && id<MOUSE_MAX_BUTTON)
         {
           buttonId += id;
         }
@@ -1743,7 +1759,7 @@ void CButtonTranslator::MapTouchActions(int windowID, TiXmlNode *pTouch)
     m_touchMap.insert(std::pair<int, buttonMap>(windowID, map));
 }
 
-int CButtonTranslator::GetTouchActionCode(int window, int action)
+int CButtonTranslator::GetTouchActionCode(int window, int action, std::string &actionString)
 {
   std::map<int, buttonMap>::const_iterator windowIt = m_touchMap.find(window);
   if (windowIt == m_touchMap.end())
@@ -1753,5 +1769,6 @@ int CButtonTranslator::GetTouchActionCode(int window, int action)
   if (touchIt == windowIt->second.end())
     return ACTION_NONE;
 
+  actionString = touchIt->second.strID;
   return touchIt->second.id;
 }

@@ -25,7 +25,7 @@
 #include "utils/JobManager.h"
 #include "FileItem.h"
 #include "settings/AdvancedSettings.h"
-#include "Key.h"
+#include "input/Key.h"
 #include "TextureCache.h"
 #include "WindowIDs.h"
 #include "utils/StringUtils.h"
@@ -50,7 +50,7 @@ CGUIMultiImage::CGUIMultiImage(int parentID, int controlID, float posX, float po
 }
 
 CGUIMultiImage::CGUIMultiImage(const CGUIMultiImage &from)
-  : CGUIControl(from), m_texturePath(), m_imageTimer(), m_files(), m_image(from.m_image)
+  : CGUIControl(from), m_texturePath(from.m_texturePath), m_imageTimer(), m_files(), m_image(from.m_image)
 {
   m_timePerImage = from.m_timePerImage;
   m_timeToPauseAtEnd = from.m_timeToPauseAtEnd;

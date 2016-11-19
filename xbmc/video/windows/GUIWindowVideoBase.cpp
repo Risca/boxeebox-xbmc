@@ -23,13 +23,9 @@
 #include "Util.h"
 #include "video/VideoInfoDownloader.h"
 #include "video/VideoInfoScanner.h"
-#include "utils/RegExp.h"
 #include "utils/Variant.h"
-#include "addons/AddonManager.h"
 #include "addons/GUIDialogAddonInfo.h"
-#include "addons/IAddon.h"
 #include "video/dialogs/GUIDialogVideoInfo.h"
-#include "GUIWindowVideoNav.h"
 #include "dialogs/GUIDialogSmartPlaylistEditor.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
@@ -38,12 +34,8 @@
 #include "NfoFile.h"
 #include "PlayListPlayer.h"
 #include "GUIPassword.h"
-#include "filesystem/ZipManager.h"
 #include "filesystem/StackDirectory.h"
-#include "filesystem/MultiPathDirectory.h"
 #include "video/dialogs/GUIDialogFileStacking.h"
-#include "dialogs/GUIDialogMediaSource.h"
-#include "windows/GUIWindowFileManager.h"
 #include "filesystem/VideoDatabaseDirectory.h"
 #include "PartyModeManager.h"
 #include "guilib/GUIWindowManager.h"
@@ -57,25 +49,20 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSettings.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/StringUtils.h"
 #include "utils/log.h"
 #include "utils/FileUtils.h"
-#include "interfaces/AnnouncementManager.h"
-#include "network/upnp/UPnP.h"
 #include "pvr/PVRManager.h"
 #include "pvr/recordings/PVRRecordings.h"
 #include "utils/URIUtils.h"
 #include "GUIUserMessages.h"
-#include "addons/Skin.h"
 #include "storage/MediaManager.h"
 #include "Autorun.h"
 #include "URL.h"
-#include "utils/EdenVideoArtUpdater.h"
-#include "GUIInfoManager.h"
 #include "utils/GroupUtils.h"
-#include "filesystem/File.h"
+#include "TextureDatabase.h"
 
 using namespace std;
 using namespace XFILE;
@@ -88,7 +75,6 @@ using namespace PVR;
 #define CONTROL_BTNVIEWASICONS     2
 #define CONTROL_BTNSORTBY          3
 #define CONTROL_BTNSORTASC         4
-#define CONTROL_BTNTYPE            5
 #define CONTROL_LABELFILES        12
 
 #define CONTROL_PLAY_DVD           6
@@ -138,16 +124,7 @@ bool CGUIWindowVideoBase::OnMessage(CGUIMessage& message)
   case GUI_MSG_WINDOW_INIT:
     {
       m_database.Open();
-
       m_dlgProgress = (CGUIDialogProgress*)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
-
-      // save current window, unless the current window is the video playlist window
-      if (GetID() != WINDOW_VIDEO_PLAYLIST && CSettings::Get().GetInt("myvideos.startwindow") != GetID())
-      {
-        CSettings::Get().SetInt("myvideos.startwindow", GetID());
-        CSettings::Get().Save();
-      }
-
       return CGUIMediaWindow::OnMessage(message);
     }
     break;
@@ -163,35 +140,7 @@ bool CGUIWindowVideoBase::OnMessage(CGUIMessage& message)
       }
       else
 #endif
-      if (iControl == CONTROL_BTNTYPE)
-      {
-        CGUIMessage msg(GUI_MSG_ITEM_SELECTED, GetID(), CONTROL_BTNTYPE);
-        g_windowManager.SendMessage(msg);
-
-        int nSelected = msg.GetParam1();
-        int nNewWindow = WINDOW_VIDEO_FILES;
-        switch (nSelected)
-        {
-        case 0:  // Movies
-          nNewWindow = WINDOW_VIDEO_FILES;
-          break;
-        case 1:  // Library
-          nNewWindow = WINDOW_VIDEO_NAV;
-          break;
-        }
-
-        if (nNewWindow != GetID())
-        {
-          CSettings::Get().SetInt("myvideos.startwindow", nNewWindow);
-          CSettings::Get().Save();
-          g_windowManager.ChangeActiveWindow(nNewWindow);
-          CGUIMessage msg2(GUI_MSG_SETFOCUS, nNewWindow, CONTROL_BTNTYPE);
-          g_windowManager.SendMessage(msg2);
-        }
-
-        return true;
-      }
-      else if (m_viewControl.HasControl(iControl))  // list/thumb control
+      if (m_viewControl.HasControl(iControl))  // list/thumb control
       {
         // get selected item
         int iItem = m_viewControl.GetSelectedItem();
@@ -253,30 +202,7 @@ bool CGUIWindowVideoBase::OnMessage(CGUIMessage& message)
   return CGUIMediaWindow::OnMessage(message);
 }
 
-void CGUIWindowVideoBase::UpdateButtons()
-{
-  // Remove labels from the window selection
-  CGUIMessage msg(GUI_MSG_LABEL_RESET, GetID(), CONTROL_BTNTYPE);
-  g_windowManager.SendMessage(msg);
-
-  // Add labels to the window selection
-  std::string strItem = g_localizeStrings.Get(744); // Files
-  CGUIMessage msg2(GUI_MSG_LABEL_ADD, GetID(), CONTROL_BTNTYPE);
-  msg2.SetLabel(strItem);
-  g_windowManager.SendMessage(msg2);
-
-  strItem = g_localizeStrings.Get(14022); // Library
-  msg2.SetLabel(strItem);
-  g_windowManager.SendMessage(msg2);
-
-  // Select the current window as default item
-  int nWindow = CSettings::Get().GetInt("myvideos.startwindow")-WINDOW_VIDEO_FILES;
-  CONTROL_SELECT_ITEM(CONTROL_BTNTYPE, nWindow);
-  
-  CGUIMediaWindow::UpdateButtons();
-}
-
-void CGUIWindowVideoBase::OnInfo(CFileItem* pItem, const ADDON::ScraperPtr& scraper)
+void CGUIWindowVideoBase::OnInfo(CFileItem* pItem, ADDON::ScraperPtr& scraper)
 {
   if (!pItem)
     return;
@@ -289,7 +215,8 @@ void CGUIWindowVideoBase::OnInfo(CFileItem* pItem, const ADDON::ScraperPtr& scra
   // so take a copy of the item now
   CFileItem item(*pItem);
   bool fromDB = false;
-  if (item.IsVideoDb() && item.HasVideoInfoTag())
+  if ((item.IsVideoDb() && item.HasVideoInfoTag()) ||
+      (item.HasVideoInfoTag() && item.GetVideoInfoTag()->m_iDbId != -1))
   {
     if (item.GetVideoInfoTag()->m_type == MediaTypeSeason)
     { // clear out the art - we're really grabbing the info on the show here
@@ -326,7 +253,7 @@ void CGUIWindowVideoBase::OnInfo(CFileItem* pItem, const ADDON::ScraperPtr& scra
       // no video file in this folder
       if (!bFoundFile)
       {
-        CGUIDialogOK::ShowAndGetInput(13346,20349,20022,20022);
+        CGUIDialogOK::ShowAndGetInput(13346, 20349);
         return;
       }
     }
@@ -473,7 +400,7 @@ bool CGUIWindowVideoBase::ShowIMDB(CFileItem *item, const ScraperPtr &info2, boo
 
   if (g_application.IsVideoScanning())
   {
-    CGUIDialogOK::ShowAndGetInput(13346,14057,-1,-1);
+    CGUIDialogOK::ShowAndGetInput(13346, 14057);
     return false;
   }
 
@@ -510,7 +437,7 @@ bool CGUIWindowVideoBase::ShowIMDB(CFileItem *item, const ScraperPtr &info2, boo
         bHasInfo = true;
         if (!info->IsNoop() && (nfoResult == CNfoFile::URL_NFO || nfoResult == CNfoFile::COMBINED_NFO || nfoResult == CNfoFile::FULL_NFO))
         {
-          if (CGUIDialogYesNo::ShowAndGetInput(13346,20446,20447,20022))
+          if (CGUIDialogYesNo::ShowAndGetInput(13346, 20446))
           {
             hasDetails = false;
             ignoreNfo = true;
@@ -722,7 +649,7 @@ bool CGUIWindowVideoBase::ShowIMDB(CFileItem *item, const ScraperPtr &info2, boo
           m_database.Close();
           return listNeedsUpdating; // user cancelled
         }
-        CGUIDialogOK::ShowAndGetInput(195, movieName, 0, 0);
+        CGUIDialogOK::ShowAndGetInput(195, movieName);
         m_database.Close();
         return listNeedsUpdating;
       }
@@ -735,6 +662,13 @@ bool CGUIWindowVideoBase::ShowIMDB(CFileItem *item, const ScraperPtr &info2, boo
 
 void CGUIWindowVideoBase::OnQueueItem(int iItem)
 {
+  // Determine the proper list to queue this element
+  int playlist = g_playlistPlayer.GetCurrentPlaylist();
+  if (playlist == PLAYLIST_NONE)
+    playlist = g_application.m_pPlayer->GetPreferredPlaylist();
+  if (playlist == PLAYLIST_NONE)
+    playlist = PLAYLIST_VIDEO;
+
   // don't re-queue items from playlist window
   if ( iItem < 0 || iItem >= m_vecItems->Size() || GetID() == WINDOW_VIDEO_PLAYLIST ) return ;
 
@@ -757,8 +691,8 @@ void CGUIWindowVideoBase::OnQueueItem(int iItem)
     return;
   }
 
-  g_playlistPlayer.Add(PLAYLIST_VIDEO, queuedItems);
-  g_playlistPlayer.SetCurrentPlaylist(PLAYLIST_VIDEO);
+  g_playlistPlayer.Add(playlist, queuedItems);
+  g_playlistPlayer.SetCurrentPlaylist(playlist);
   // video does not auto play on queue like music
   m_viewControl.SetSelectedItem(iItem + 1);
 }
@@ -828,7 +762,7 @@ void CGUIWindowVideoBase::AddItemToPlayList(const CFileItemPtr &pItem, CFileItem
         // load it
         if (!pPlayList->Load(pItem->GetPath()))
         {
-          CGUIDialogOK::ShowAndGetInput(6, 0, 477, 0);
+          CGUIDialogOK::ShowAndGetInput(6, 477);
           return; //hmmm unable to load playlist?
         }
 
@@ -1410,7 +1344,7 @@ bool CGUIWindowVideoBase::OnPlayMedia(int iItem)
   }
   CLog::Log(LOGDEBUG, "%s %s", __FUNCTION__, CURL::GetRedacted(item.GetPath()).c_str());
 
-  if (StringUtils::StartsWith(item.GetPath(), "pvr://recordings/"))
+  if (StringUtils::StartsWith(item.GetPath(), "pvr://recordings/active/"))
   {
     if (!g_PVRManager.IsStarted())
       return false;
@@ -1463,7 +1397,7 @@ bool CGUIWindowVideoBase::OnPlayMedia(int iItem)
       else
       {
         CLog::Log(LOGERROR, "CGUIWindowTV: Can't open recording, no valid filename!");
-        CGUIDialogOK::ShowAndGetInput(19033,0,19036,0);
+        CGUIDialogOK::ShowAndGetInput(19033, 19036);
         return false;
       }
     }
@@ -1551,7 +1485,7 @@ void CGUIWindowVideoBase::LoadPlayList(const std::string& strPlayList, int iPlay
     // load it
     if (!pPlayList->Load(strPlayList))
     {
-      CGUIDialogOK::ShowAndGetInput(6, 0, 477, 0);
+      CGUIDialogOK::ShowAndGetInput(6, 477);
       return; //hmmm unable to load playlist?
     }
   }
@@ -1663,10 +1597,9 @@ bool CGUIWindowVideoBase::GetDirectory(const std::string &strDirectory, CFileIte
 bool CGUIWindowVideoBase::StackingAvailable(const CFileItemList &items)
 {
   CURL url(items.GetPath());
-  return !(items.IsTuxBox()         || items.IsPlugin()  ||
-           items.IsAddonsPath()     || items.IsRSS()     ||
-           items.IsInternetStream() || items.IsVideoDb() ||
-           url.IsProtocol("playlistvideo"));
+  return !(items.IsPlugin() || items.IsAddonsPath()  ||
+           items.IsRSS() || items.IsInternetStream() ||
+           items.IsVideoDb() || url.IsProtocol("playlistvideo"));
 }
 
 void CGUIWindowVideoBase::GetGroupedItems(CFileItemList &items)
@@ -1838,7 +1771,7 @@ void CGUIWindowVideoBase::OnSearch()
   }
   else
   {
-    CGUIDialogOK::ShowAndGetInput(194, 284, 0, 0);
+    CGUIDialogOK::ShowAndGetInput(194, 284);
   }
 }
 
@@ -1950,12 +1883,12 @@ void CGUIWindowVideoBase::AppendAndClearSearchItems(CFileItemList &searchItems, 
   searchItems.Clear();
 }
 
-bool CGUIWindowVideoBase::OnUnAssignContent(const std::string &path, int label1, int label2, int label3)
+bool CGUIWindowVideoBase::OnUnAssignContent(const std::string &path, int header, int text)
 {
   bool bCanceled;
   CVideoDatabase db;
   db.Open();
-  if (CGUIDialogYesNo::ShowAndGetInput(label1,label2,label3,20022,bCanceled))
+  if (CGUIDialogYesNo::ShowAndGetInput(header, text, bCanceled))
   {
     CGUIDialogProgress *progress = (CGUIDialogProgress *)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
     db.RemoveContentForPath(path, progress);
@@ -1993,11 +1926,11 @@ void CGUIWindowVideoBase::OnAssignContent(const std::string &path)
   {
     if(settings.exclude || (!info && info2))
     {
-      OnUnAssignContent(path,20375,20340,20341);
+      OnUnAssignContent(path, 20375, 20340);
     }
     else if (info != info2)
     {
-      if (OnUnAssignContent(path,20442,20443,20444))
+      if (OnUnAssignContent(path, 20442, 20443))
         bScan = true;
     }
   }
@@ -2007,21 +1940,5 @@ void CGUIWindowVideoBase::OnAssignContent(const std::string &path)
   if (bScan)
   {
     g_application.StartVideoScan(path, true, true);
-  }
-}
-
-void CGUIWindowVideoBase::OnInitWindow()
-{
-  CGUIMediaWindow::OnInitWindow();
-  if (CMediaSettings::Get().GetVideoNeedsUpdate() == 63 && !g_application.IsVideoScanning() &&
-      g_infoManager.GetLibraryBool(LIBRARY_HAS_VIDEO))
-  {
-    // rescan of video library required
-    if (CGUIDialogYesNo::ShowAndGetInput(799, 12351, 12352, 12354))
-    {
-      CEdenVideoArtUpdater::Start();
-      CMediaSettings::Get().SetVideoNeedsUpdate(0); // once is enough
-      CSettings::Get().Save();
-    }
   }
 }

@@ -28,11 +28,9 @@ DVDPLAYER_ARCHIVES=xbmc/cores/dvdplayer/DVDPlayer.a \
 
 DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    lib/SlingboxLib/SlingboxLib.a \
-                   lib/libRTV/librtv.a \
-                   lib/libXDAAP/libxdaap.a \
-                   lib/libhts/libhts.a \
                    xbmc/addons/addons.a \
                    xbmc/cdrip/cdrip.a \
+                   xbmc/contrib/kissfft/kissfft.a \
                    xbmc/cores/AudioEngine/audioengine.a \
                    xbmc/cores/DllLoader/dllloader.a \
                    xbmc/cores/DllLoader/exports/exports.a \
@@ -55,6 +53,8 @@ DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    xbmc/interfaces/info/info.a \
                    xbmc/interfaces/interfaces.a \
                    xbmc/interfaces/json-rpc/json-rpc.a \
+                   xbmc/interfaces/legacy/legacy.a \
+                   xbmc/interfaces/python/python_binding.a \
                    xbmc/linux/linux.a \
                    xbmc/listproviders/listproviders.a \
                    xbmc/media/media.a \
@@ -92,6 +92,7 @@ DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    xbmc/storage/storage.a \
                    xbmc/utils/utils.a \
                    xbmc/video/dialogs/videodialogs.a \
+                   xbmc/video/jobs/video-jobs.a \
                    xbmc/video/videosync/videosync.a \
                    xbmc/video/video.a \
                    xbmc/video/windows/videowindows.a \
@@ -105,11 +106,10 @@ NWAOBJSXBMC=	xbmc/threads/threads.a \
 
 
 ifeq (@USE_WEB_SERVER@,1)
+DIRECTORY_ARCHIVES += xbmc/interfaces/legacy/wsgi/legacy-wsgi.a
 DIRECTORY_ARCHIVES += xbmc/network/httprequesthandler/httprequesthandlers.a
+DIRECTORY_ARCHIVES += xbmc/network/httprequesthandler/python/httprequesthandlers-python.a
 endif
-
-DIRECTORY_ARCHIVES += xbmc/interfaces/legacy/legacy.a
-DIRECTORY_ARCHIVES += xbmc/interfaces/python/python_binding.a
 
 ifeq (@USE_OPENGL@,1)
 DIRECTORY_ARCHIVES += xbmc/rendering/gl/rendering_gl.a
@@ -185,30 +185,12 @@ ifeq (@USE_OMXPLAYER@,1)
 DIRECTORY_ARCHIVES += xbmc/cores/omxplayer/omxplayer.a
 endif
 
-PAPCODECS_DIRS= \
-	lib/nosefart \
-	lib/timidity \
-	lib/libsidplay2 \
-	lib/stsound/StSoundLibrary \
-	lib/snesapu/SNES/SNESAPU \
-	lib/vgmstream
-
-ifeq (@USE_ASAP_CODEC@,1)
-PAPCODECS_DIRS+= \
-	lib/asap
-endif
-
 LIB_DIRS=\
 	lib/cximage-6.0 \
 	lib/libexif \
 	lib/libhdhomerun \
 	lib/cpluff \
 	lib/xbmc-dll-symbols
-
-ifeq (@USE_MYSQL@,1)
-LIB_DIRS += lib/cmyth
-CMYTH=cmyth
-endif
 
 SS_DIRS=
 ifneq (@DISABLE_RSXS@,1)
@@ -251,7 +233,7 @@ LIBADDON_DIRS=\
 	lib/addons/library.xbmc.addon \
 	lib/addons/library.xbmc.codec \
 	lib/addons/library.xbmc.pvr \
-	lib/addons/library.xbmc.gui \
+	lib/addons/library.kodi.guilib \
 
 CONFLUENCE_MEDIA=addons/skin.confluence/media
 SKIN_DIRS=$(CONFLUENCE_MEDIA)
@@ -337,7 +319,7 @@ all : $(FINAL_TARGETS)
 
 include Makefile.include
 
-.PHONY : dllloader exports visualizations screensavers eventclients papcodecs \
+.PHONY : dllloader exports visualizations screensavers eventclients \
 	dvdpcodecs dvdpextcodecs imagelib codecs externals force skins libaddon check \
 	testframework testsuite
 
@@ -361,7 +343,7 @@ skins:
 endif
 
 # Setup some dependencies for subdir makes
-xbmc/cores/paplayer/paplayer.a: papcodecs
+xbmc/cores/paplayer/paplayer.a:
 $(DVDPLAYER_ARCHIVES)         : dvdpcodecs
 
 lib/cpluff/libcpluff/.libs/libcpluff.a: force
@@ -400,7 +382,7 @@ screensavers: $(SS_DIRS)
 libaddon: exports
 	$(MAKE) -C lib/addons/library.xbmc.addon
 	$(MAKE) -C lib/addons/library.xbmc.codec
-	$(MAKE) -C lib/addons/library.xbmc.gui
+	$(MAKE) -C lib/addons/library.kodi.guilib
 	$(MAKE) -C lib/addons/library.xbmc.pvr
 dvdpcodecs: dllloader
 	$(MAKE) -C lib/libdvd
@@ -422,45 +404,20 @@ else
 endif
 libexif: dllloader
 	$(MAKE) -C lib/libexif
-cmyth: dllloader
-	$(MAKE) -C lib/cmyth
 libhdhomerun: dllloader
 	$(MAKE) -C lib/libhdhomerun
-papcodecs: dllloader dvdpcodecs
-	test -d system/players/paplayer || mkdir system/players/paplayer
-	$(MAKE) -C lib/vgmstream
-	$(MAKE) -C lib/timidity
-	$(MAKE) -C lib/nosefart
-ifneq ($(findstring arm-osx,@ARCH@), arm-osx)
-	$(MAKE) -C lib/libsidplay2
-endif
-ifeq (@USE_ASAP_CODEC@,1)
-  ifneq ($(findstring osx,@ARCH@), osx)
-	$(MAKE) -C lib/asap asap-xbmc
-  endif
-endif
-	$(MAKE) -C lib/stsound/StSoundLibrary
-ifeq ($(or $(findstring powerpc,@ARCH@),$(findstring x86_64-linux,@ARCH@),$(findstring arm, @ARCH@),$(findstring freebsd,@ARCH@),$(findstring mips,@ARCH@)),)
-	$(MAKE) -C lib/snesapu/SNES/SNESAPU
-endif
+
 imagelib: dllloader
 	$(MAKE) -C lib/cximage-6.0
 
-pvraddons: exports
-ifeq (@USE_PVR_ADDONS@,1)
-	$(MAKE) -C pvr-addons
-endif
+codecs: dvdpcodecs dvdpextcodecs
 
-codecs: papcodecs dvdpcodecs dvdpextcodecs
+libs: $(LIBSSE4) libhdhomerun imagelib libexif system/libcpluff-@ARCH@.so
 
-libs: $(LIBSSE4) libhdhomerun imagelib libexif system/libcpluff-@ARCH@.so $(CMYTH)
-
-externals: codecs libs visualizations screensavers libaddon pvraddons
+externals: codecs libs visualizations screensavers libaddon
 
 xcode_depends: \
 	codecs libs visualizations screensavers eventclients skins libaddon \
-	lib/libRTV/librtv.a \
-	lib/libXDAAP/libxdaap.a \
 	lib/SlingboxLib/SlingboxLib.a
 
 DYNOBJSXBMC= \
@@ -506,7 +463,7 @@ OBJSXBMC:=$(filter-out $(DYNOBJSXBMC), $(OBJSXBMC))
 
 BIN_DIRS = $(dir $(DIRECTORY_ARCHIVES)) $(dir $(NWAOBJSXBMC)) $(dir $(MAINOBJS))
 
-DIRS= $(BIN_DIRS) $(EC_DIRS) $(DVDPCODECS_DIRS) $(PAPCODECS_DIRS) \
+DIRS= $(BIN_DIRS) $(EC_DIRS) $(DVDPCODECS_DIRS) \
 	$(LIB_DIRS) $(SS_DIRS) $(VIS_DIRS) $(LIBADDON_DIRS) $(SKIN_DIRS) xbmc/main
 
 $(NWAOBJSXBMC) $(DIRECTORY_ARCHIVES) $(MAINOBJS): force
@@ -531,7 +488,7 @@ else
 endif
 
 @APP_NAME_LC@-xrandr: xbmc-xrandr.c
-ifneq (1,@USE_XRANDR@)
+ifneq (1,@USE_X11@)
 	# xbmc-xrandr.c gets picked up by the default make rules
 	@echo "excluding @APP_NAME_LC@-xrandr"
 else
@@ -558,7 +515,7 @@ install-binaries: install-scripts
 	@echo "Copying @APP_NAME_LC@ binary to $(DESTDIR)$(libdir)/@APP_NAME_LC@/"
 	@install -d $(DESTDIR)$(libdir)/@APP_NAME_LC@
 	@cd $(DESTDIR)$(libdir); [ -L xbmc ] || [ -d xbmc ] || ln -s @APP_NAME_LC@ xbmc
-ifeq (1,@USE_XRANDR@)
+ifeq (1,@USE_X11@)
 	@install @APP_NAME_LC@-xrandr $(DESTDIR)$(libdir)/@APP_NAME_LC@/@APP_NAME_LC@-xrandr
 endif
 ifeq (@USE_LIBXBMC@,1)
@@ -571,9 +528,6 @@ endif
 
 install-arch:
 	@# Arch dependent files
-ifeq (@USE_PVR_ADDONS@,1)
-	$(MAKE) -C pvr-addons install
-endif
 ifeq ($(findstring freebsd,@ARCH@), freebsd)
 	@find -E system addons -type f -not -iregex ".*\.git.*" \
 		-iregex ".*@ARCH@.*|.*\.vis|.*\.xbs" \
@@ -590,7 +544,8 @@ ifeq ($(findstring Darwin,$(shell uname -s)),Darwin)
 		-exec install "{}" $(DESTDIR)$(libdir)/xbmc/"{}" \; \
 		-exec printf " -- %-75.75s\r" "{}" \;
 else
-	@find system addons -regextype posix-extended -type f -not -iregex ".*\.git.*" -iregex ".*\.so|.*\.vis|.*\.xbs|.*\.pvr" -exec install -D "{}" $(DESTDIR)$(libdir)/@APP_NAME_LC@/"{}" \; -printf " -- %-75.75f\r"
+	@find system addons -regextype posix-extended -type f -not -iregex ".*\.git.*" -iregex ".*\.so|.*\.so\.[0-9].*|.*\.vis|.*\.xbs" -exec install -D "{}" $(DESTDIR)$(libdir)/@APP_NAME_LC@/"{}" \; -printf " -- %-75.75f\r"
+	@find -L addons -regextype posix-extended -type f -not -iregex ".*\.git.*" -iregex ".*\.so|.*\.so\.[0-9].*" -exec cp -d "{}" $(DESTDIR)$(libdir)/@APP_NAME_LC@/"{}" \; -printf " -- %-75.75f\r"
 endif
 endif
 
@@ -617,22 +572,22 @@ install-datas: install-scripts
 	@install -d $(DESTDIR)$(datarootdir)/@APP_NAME_LC@
 	@# Arch independent files
 ifeq ($(findstring bsd,@ARCH@), bsd)
-	@find -E addons language media sounds userdata system -type f \
-		-not -iregex ".*@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.dll|$(subst ${space},|,$(INSTALL_FILTER))" \
+	@find -E addons media userdata system -type f \
+		-not -iregex ".*-@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.so\.[0-9].*|.*\.dll|$(subst ${space},|,$(INSTALL_FILTER))" \
 		-exec sh -c "install -d \"$(DESTDIR)$(datarootdir)/@APP_NAME_LC@/\`dirname '{}'\`\"" \; \
 		-and \
 		-exec install -m 0644 "{}" $(DESTDIR)$(datarootdir)/@APP_NAME_LC@/"{}" \; \
 		-exec printf " -- %-75.75s\r" "{}" \;
 else
 ifeq ($(findstring Darwin,$(shell uname -s)),Darwin)
-	@find -E addons language media sounds userdata system -type f \
-		-not -iregex ".*@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.dll|$(subst ${space},|,$(INSTALL_FILTER))" \
+	@find -E addons media userdata system -type f \
+		-not -iregex ".*-@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.so\.[0-9].*|.*\.dll|$(subst ${space},|,$(INSTALL_FILTER))" \
 		-exec sh -c "install -d \"$(DESTDIR)$(datarootdir)/xbmc/\`dirname '{}'\`\"" \; \
 		-and \
 		-exec install -m 0644 "{}" $(DESTDIR)$(datarootdir)/xbmc/"{}" \; \
 		-exec printf " -- %-75.75s\r" "{}" \;
 else
-	@find addons language media sounds userdata system -regextype posix-extended -type f -not -iregex ".*@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.dll|.*\.pvr|$(subst ${space},|,$(INSTALL_FILTER))" -exec install -D -m 0644 "{}" $(DESTDIR)$(datarootdir)/@APP_NAME_LC@/"{}" \; -printf " -- %-75.75f\r"
+	@find addons media userdata system -regextype posix-extended -type f -not -iregex ".*-@ARCH@.*|.*\.vis|.*\.xbs|.*\.git.*|.*\.so|.*\.so\.[0-9].*|.*\.dll|$(subst ${space},|,$(INSTALL_FILTER))" -exec install -D -m 0644 "{}" $(DESTDIR)$(datarootdir)/@APP_NAME_LC@/"{}" \; -printf " -- %-75.75f\r"
 endif
 endif
 	@# Icons and links
@@ -688,8 +643,6 @@ clean-eventclients:
 	for d in $(EC_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-dvdpcodecs:
 	for d in $(DVDPCODECS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-papcodecs:
-	for d in $(PAPCODECS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libs:
 	for d in $(LIB_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-screensavers:
@@ -698,15 +651,11 @@ clean-visualisations:
 	for d in $(VIS_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
 clean-libaddons:
 	for d in $(LIBADDON_DIRS); do if test -f $$d/Makefile; then $(MAKE) -C $$d clean; fi; done
-clean-pvraddons:
-ifeq (@USE_PVR_ADDONS@,1)
-	if test -f pvr-addons/Makefile; then $(MAKE) -C pvr-addons clean; fi;
-endif
 
-clean-codecs: clean-dvdpcodecs clean-papcodecs
+clean-codecs: clean-dvdpcodecs
 
 clean-externals: clean-codecs clean-eventclients clean-libs \
-	clean-screensavers clean-visualisations clean-libaddons clean-pvraddons
+	clean-screensavers clean-visualisations clean-libaddons
 
 ifeq (1,@GTEST_CONFIGURED@)
 check: testsuite

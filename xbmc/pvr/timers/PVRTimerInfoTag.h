@@ -66,16 +66,20 @@ namespace PVR
   class CPVRTimerInfoTag : public ISerializable
   {
     friend class CPVRTimers;
-    friend class CGUIDialogPVRTimerSettings;
 
   public:
-    CPVRTimerInfoTag(void);
-    CPVRTimerInfoTag(const PVR_TIMER &timer, CPVRChannelPtr channel, unsigned int iClientId);
+    CPVRTimerInfoTag(bool bRadio = false);
+    CPVRTimerInfoTag(const PVR_TIMER &timer, const CPVRChannelPtr &channel, unsigned int iClientId);
+
+  private:
+    CPVRTimerInfoTag(const CPVRTimerInfoTag &tag); // intentionally not implemented.
+    CPVRTimerInfoTag &operator=(const CPVRTimerInfoTag &orig); // intentionally not implemented.
+
+  public:
     virtual ~CPVRTimerInfoTag(void);
 
     bool operator ==(const CPVRTimerInfoTag& right) const;
     bool operator !=(const CPVRTimerInfoTag& right) const;
-    CPVRTimerInfoTag &operator=(const CPVRTimerInfoTag &orig);
 
     virtual void Serialize(CVariant &value) const;
 
@@ -89,21 +93,25 @@ namespace PVR
 
     bool SetDuration(int iDuration);
 
-    static CPVRTimerInfoTag *CreateFromEpg(const EPG::CEpgInfoTag &tag);
+    static CPVRTimerInfoTagPtr CreateFromEpg(const EPG::CEpgInfoTagPtr &tag);
     EPG::CEpgInfoTagPtr GetEpgInfoTag(void) const;
+    /*!
+     * @return True if this timer has a corresponding epg info tag, false otherwise
+     */
+    bool HasEpgInfoTag() const;
 
     int ChannelNumber(void) const;
     std::string ChannelName(void) const;
     std::string ChannelIcon(void) const;
     CPVRChannelPtr ChannelTag(void) const;
 
-    bool UpdateEntry(const CPVRTimerInfoTag &tag);
+    bool UpdateEntry(const CPVRTimerInfoTagPtr &tag);
 
     void UpdateEpgEvent(bool bClear = false);
 
-    bool IsActive(void) const 
-    { 	
-      return m_state == PVR_TIMER_STATE_SCHEDULED 
+    bool IsActive(void) const
+    {
+      return m_state == PVR_TIMER_STATE_SCHEDULED
         || m_state == PVR_TIMER_STATE_RECORDING
         || m_state == PVR_TIMER_STATE_CONFLICT_OK
         || m_state == PVR_TIMER_STATE_CONFLICT_NOK
@@ -145,6 +153,11 @@ namespace PVR
      * @param strText The notification.
      */
     void GetNotificationText(std::string &strText) const;
+
+    /*!
+    * @brief Get the text for the notification when a timer has been deleted
+    */
+    std::string GetDeletedNotificationText() const;
 
     const std::string& Title(void) const;
     const std::string& Summary(void) const;

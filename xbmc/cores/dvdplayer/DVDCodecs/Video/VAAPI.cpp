@@ -479,7 +479,7 @@ CDecoder::~CDecoder()
   Close();
 }
 
-bool CDecoder::Open(AVCodecContext* avctx, const enum PixelFormat fmt, unsigned int surfaces)
+bool CDecoder::Open(AVCodecContext* avctx, AVCodecContext* mainctx, const enum PixelFormat fmt, unsigned int surfaces)
 {
   // don't support broken wrappers by default
   // nvidia cards with a vaapi to vdpau wrapper
@@ -611,7 +611,11 @@ bool CDecoder::Open(AVCodecContext* avctx, const enum PixelFormat fmt, unsigned 
   avctx->get_buffer2 = CDecoder::FFGetBuffer;
   avctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
 
-  m_avctx = avctx;
+  mainctx->hwaccel_context = &m_hwContext;
+  mainctx->get_buffer2 = CDecoder::FFGetBuffer;
+  mainctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
+
+  m_avctx = mainctx;
   return true;
 }
 
@@ -828,7 +832,7 @@ int CDecoder::Decode(AVCodecContext* avctx, AVFrame* pFrame)
       msg->Release();
     }
 
-    if (decoded < 2 && processed < 3 && m_videoSurfaces.HasFree())
+    if (decoded < 2 && processed < 3)
     {
       retval |= VC_BUFFER;
     }
@@ -898,7 +902,14 @@ int CDecoder::Check(AVCodecContext* avctx)
   }
 
   if (m_getBufferError)
+  {
+    // if there is no other error, sleep for a short while
+    // in order not to drain player's message queue
+    if (!ret)
+      Sleep(20);
+
     ret |= VC_NOBUFFER;
+  }
 
   m_getBufferError = false;
   return ret;

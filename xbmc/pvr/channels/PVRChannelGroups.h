@@ -107,7 +107,7 @@ namespace PVR
      * @return The last group in this container.
      */
     CPVRChannelGroupPtr GetLastGroup(void) const;
-    
+
     /*!
      * @brief The group that was played last and optionally contains the given channel.
      * @param iChannelID The channel ID
@@ -180,7 +180,7 @@ namespace PVR
      * @brief Remove a channel from all non-system groups.
      * @param channel The channel to remove.
      */
-    void RemoveFromAllGroups(const CPVRChannel &channel);
+    void RemoveFromAllGroups(const CPVRChannelPtr &channel);
 
     /*!
      * @brief Persist all changes in channel groups.
@@ -204,6 +204,7 @@ namespace PVR
     bool UpdateGroupsEntries(const CPVRChannelGroups &groups);
     bool LoadUserDefinedChannelGroups(void);
     bool GetGroupsFromClients(void);
+    void SortGroups(void);
 
     bool                             m_bRadio;         /*!< true if this is a container for radio channels, false if it is for tv channels */
     CPVRChannelGroupPtr              m_selectedGroup;  /*!< the group that's currently selected in the UI */

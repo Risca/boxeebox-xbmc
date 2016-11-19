@@ -27,22 +27,14 @@
 #include "Util.h"
 #include "addons/Skin.h"
 #include "cores/AudioEngine/AEFactory.h"
-#include "cores/dvdplayer/DVDCodecs/Video/DVDVideoCodec.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "cores/VideoRenderers/BaseRenderer.h"
 #include "filesystem/File.h"
 #include "guilib/GraphicContext.h"
 #include "guilib/GUIAudioManager.h"
 #include "guilib/GUIFontManager.h"
-#include "guilib/LocalizeStrings.h"
 #include "guilib/StereoscopicsManager.h"
-#include "input/KeyboardLayout.h"
-#include "input/MouseStat.h"
-#if defined(TARGET_WINDOWS)
-#include "input/windows/WINJoystick.h"
-#elif defined(HAS_SDL_JOYSTICK)
-#include "input/SDLJoystick.h"
-#endif // defined(HAS_SDL_JOYSTICK)
+#include "input/KeyboardLayoutManager.h"
 #if defined(TARGET_POSIX)
 #include "linux/LinuxTimezone.h"
 #endif // defined(TARGET_POSIX)
@@ -55,6 +47,15 @@
 #if defined(TARGET_DARWIN)
 #include "osx/DarwinUtils.h"
 #endif
+#if defined(TARGET_DARWIN_IOS)
+#include "SettingAddon.h"
+#endif
+#if defined(TARGET_RASPBERRY_PI)
+#include "linux/RBP.h"
+#endif
+#if defined(HAS_LIBAMCODEC)
+#include "utils/AMLUtils.h"
+#endif // defined(HAS_LIBAMCODEC)
 #include "peripherals/Peripherals.h"
 #include "powermanagement/PowerManager.h"
 #include "profiles/ProfilesManager.h"
@@ -64,10 +65,7 @@
 #include "settings/DisplaySettings.h"
 #include "settings/MediaSettings.h"
 #include "settings/MediaSourceSettings.h"
-#include "settings/SettingAddon.h"
 #include "settings/SettingConditions.h"
-#include "settings/SettingControl.h"
-#include "settings/SettingPath.h"
 #include "settings/SettingUtils.h"
 #include "settings/SkinSettings.h"
 #include "settings/lib/SettingsManager.h"
@@ -81,7 +79,6 @@
 #include "utils/XBMCTinyXML.h"
 #include "utils/SeekHandler.h"
 #include "view/ViewStateSettings.h"
-#include "windowing/WindowingFactory.h"
 #include "input/InputManager.h"
 
 #define SETTINGS_XML_FOLDER "special://xbmc/system/settings/"
@@ -151,7 +148,7 @@ bool CSettings::Load(const std::string &file)
   if (!XFILE::CFile::Exists(file) || !xmlDoc.LoadFile(file) ||
       !m_settingsManager->Load(xmlDoc.RootElement(), updated))
   {
-    CLog::Log(LOGERROR, "CSettingsManager: unable to load settings from %s, creating new default settings", file.c_str());
+    CLog::Log(LOGERROR, "CSettings: unable to load settings from %s, creating new default settings", file.c_str());
     if (!Reset())
       return false;
 
@@ -235,10 +232,16 @@ void CSettings::Uninitialize()
   m_settingsManager->UnregisterSettingOptionsFiller("epgguideviews");
   m_settingsManager->UnregisterSettingOptionsFiller("fontheights");
   m_settingsManager->UnregisterSettingOptionsFiller("fonts");
-  m_settingsManager->UnregisterSettingOptionsFiller("languages");
+  m_settingsManager->UnregisterSettingOptionsFiller("languagenames");
   m_settingsManager->UnregisterSettingOptionsFiller("refreshchangedelays");
   m_settingsManager->UnregisterSettingOptionsFiller("refreshrates");
   m_settingsManager->UnregisterSettingOptionsFiller("regions");
+  m_settingsManager->UnregisterSettingOptionsFiller("shortdateformats");
+  m_settingsManager->UnregisterSettingOptionsFiller("longdateformats");
+  m_settingsManager->UnregisterSettingOptionsFiller("timeformats");
+  m_settingsManager->UnregisterSettingOptionsFiller("24hourclockformats");
+  m_settingsManager->UnregisterSettingOptionsFiller("speedunits");
+  m_settingsManager->UnregisterSettingOptionsFiller("temperatureunits");
   m_settingsManager->UnregisterSettingOptionsFiller("rendermethods");
   m_settingsManager->UnregisterSettingOptionsFiller("resolutions");
   m_settingsManager->UnregisterSettingOptionsFiller("screens");
@@ -249,6 +252,7 @@ void CSettings::Uninitialize()
   m_settingsManager->UnregisterSettingOptionsFiller("shutdownstates");
   m_settingsManager->UnregisterSettingOptionsFiller("startupwindows");
   m_settingsManager->UnregisterSettingOptionsFiller("streamlanguages");
+  m_settingsManager->UnregisterSettingOptionsFiller("iso6391languages");
   m_settingsManager->UnregisterSettingOptionsFiller("skincolors");
   m_settingsManager->UnregisterSettingOptionsFiller("skinfonts");
   m_settingsManager->UnregisterSettingOptionsFiller("skinsounds");
@@ -271,10 +275,7 @@ void CSettings::Uninitialize()
   m_settingsManager->UnregisterCallback(&g_charsetConverter);
   m_settingsManager->UnregisterCallback(&g_graphicsContext);
   m_settingsManager->UnregisterCallback(&g_langInfo);
-#if defined(TARGET_WINDOWS) || defined(HAS_SDL_JOYSTICK)
-  m_settingsManager->UnregisterCallback(&CInputManager::GetInstance().m_Joystick);
-#endif
-  m_settingsManager->UnregisterCallback(&g_Mouse);
+  m_settingsManager->UnregisterCallback(&CInputManager::Get());
   m_settingsManager->UnregisterCallback(&CNetworkServices::Get());
   m_settingsManager->UnregisterCallback(&g_passwordManager);
   m_settingsManager->UnregisterCallback(&PVR::g_PVRManager);
@@ -309,6 +310,7 @@ void CSettings::Uninitialize()
 #endif
   m_settingsManager->UnregisterSettingsHandler(&CWakeOnAccess::Get());
   m_settingsManager->UnregisterSettingsHandler(&CRssManager::Get());
+  m_settingsManager->UnregisterSettingsHandler(&g_langInfo);
   m_settingsManager->UnregisterSettingsHandler(&g_application);
 #if defined(TARGET_LINUX) && !defined(TARGET_ANDROID) && !defined(TARGET_BOXEE) && !defined(__UCLIBC__)
   m_settingsManager->UnregisterSettingsHandler(&g_timezone);
@@ -454,15 +456,28 @@ bool CSettings::InitializeDefinitions()
 #elif defined(TARGET_ANDROID)
   if (CFile::Exists(SETTINGS_XML_FOLDER "android.xml") && !Initialize(SETTINGS_XML_FOLDER "android.xml"))
     CLog::Log(LOGFATAL, "Unable to load android-specific settings definitions");
+#if defined(HAS_LIBAMCODEC)
+  if (aml_present() && CFile::Exists(SETTINGS_XML_FOLDER "aml-android.xml") && !Initialize(SETTINGS_XML_FOLDER "aml-android.xml"))
+    CLog::Log(LOGFATAL, "Unable to load aml-android-specific settings definitions");
+#endif // defined(HAS_LIBAMCODEC)
 #elif defined(TARGET_RASPBERRY_PI)
   if (CFile::Exists(SETTINGS_XML_FOLDER "rbp.xml") && !Initialize(SETTINGS_XML_FOLDER "rbp.xml"))
     CLog::Log(LOGFATAL, "Unable to load rbp-specific settings definitions");
+  if (g_RBP.RasberryPiVersion() > 1 && CFile::Exists(SETTINGS_XML_FOLDER "rbp2.xml") && !Initialize(SETTINGS_XML_FOLDER "rbp2.xml"))
+    CLog::Log(LOGFATAL, "Unable to load rbp2-specific settings definitions");
 #elif defined(TARGET_FREEBSD)
   if (CFile::Exists(SETTINGS_XML_FOLDER "freebsd.xml") && !Initialize(SETTINGS_XML_FOLDER "freebsd.xml"))
     CLog::Log(LOGFATAL, "Unable to load freebsd-specific settings definitions");
+#elif defined(HAS_IMXVPU)
+  if (CFile::Exists(SETTINGS_XML_FOLDER "imx6.xml") && !Initialize(SETTINGS_XML_FOLDER "imx6.xml"))
+    CLog::Log(LOGFATAL, "Unable to load imx6-specific settings definitions");
 #elif defined(TARGET_LINUX)
   if (CFile::Exists(SETTINGS_XML_FOLDER "linux.xml") && !Initialize(SETTINGS_XML_FOLDER "linux.xml"))
     CLog::Log(LOGFATAL, "Unable to load linux-specific settings definitions");
+#if defined(HAS_LIBAMCODEC)
+  if (aml_present() && CFile::Exists(SETTINGS_XML_FOLDER "aml-linux.xml") && !Initialize(SETTINGS_XML_FOLDER "aml-linux.xml"))
+    CLog::Log(LOGFATAL, "Unable to load aml-linux-specific settings definitions");
+#endif // defined(HAS_LIBAMCODEC)
 #elif defined(TARGET_DARWIN)
   if (CFile::Exists(SETTINGS_XML_FOLDER "darwin.xml") && !Initialize(SETTINGS_XML_FOLDER "darwin.xml"))
     CLog::Log(LOGFATAL, "Unable to load darwin-specific settings definitions");
@@ -511,6 +526,7 @@ void CSettings::InitializeControls()
   m_settingsManager->RegisterSettingControl("list", this);
   m_settingsManager->RegisterSettingControl("slider", this);
   m_settingsManager->RegisterSettingControl("range", this);
+  m_settingsManager->RegisterSettingControl("title", this);
 }
 
 void CSettings::InitializeVisibility()
@@ -586,10 +602,16 @@ void CSettings::InitializeOptionFillers()
   m_settingsManager->RegisterSettingOptionsFiller("audiostreamsilence", CAEFactory::SettingOptionsAudioStreamsilenceFiller);
   m_settingsManager->RegisterSettingOptionsFiller("charsets", CCharsetConverter::SettingOptionsCharsetsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("fonts", GUIFontManager::SettingOptionsFontsFiller);
-  m_settingsManager->RegisterSettingOptionsFiller("languages", CLangInfo::SettingOptionsLanguagesFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("languagenames", CLangInfo::SettingOptionsLanguageNamesFiller);
   m_settingsManager->RegisterSettingOptionsFiller("refreshchangedelays", CDisplaySettings::SettingOptionsRefreshChangeDelaysFiller);
   m_settingsManager->RegisterSettingOptionsFiller("refreshrates", CDisplaySettings::SettingOptionsRefreshRatesFiller);
   m_settingsManager->RegisterSettingOptionsFiller("regions", CLangInfo::SettingOptionsRegionsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("shortdateformats", CLangInfo::SettingOptionsShortDateFormatsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("longdateformats", CLangInfo::SettingOptionsLongDateFormatsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("timeformats", CLangInfo::SettingOptionsTimeFormatsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("24hourclockformats", CLangInfo::SettingOptions24HourClockFormatsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("speedunits", CLangInfo::SettingOptionsSpeedUnitsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("temperatureunits", CLangInfo::SettingOptionsTemperatureUnitsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("rendermethods", CBaseRenderer::SettingOptionsRenderMethodsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("resolutions", CDisplaySettings::SettingOptionsResolutionsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("screens", CDisplaySettings::SettingOptionsScreensFiller);
@@ -600,6 +622,7 @@ void CSettings::InitializeOptionFillers()
   m_settingsManager->RegisterSettingOptionsFiller("shutdownstates", CPowerManager::SettingOptionsShutdownStatesFiller);
   m_settingsManager->RegisterSettingOptionsFiller("startupwindows", ADDON::CSkinInfo::SettingOptionsStartupWindowsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("streamlanguages", CLangInfo::SettingOptionsStreamLanguagesFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("iso6391languages", CLangInfo::SettingOptionsISO6391LanguagesFiller);
   m_settingsManager->RegisterSettingOptionsFiller("skincolors", ADDON::CSkinInfo::SettingOptionsSkinColorsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("skinfonts", ADDON::CSkinInfo::SettingOptionsSkinFontsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("skinsounds", ADDON::CSkinInfo::SettingOptionsSkinSoundFiller);
@@ -609,7 +632,7 @@ void CSettings::InitializeOptionFillers()
   m_settingsManager->RegisterSettingOptionsFiller("timezones", CLinuxTimezone::SettingOptionsTimezonesFiller);
 #endif
   m_settingsManager->RegisterSettingOptionsFiller("verticalsyncs", CDisplaySettings::SettingOptionsVerticalSyncsFiller);
-  m_settingsManager->RegisterSettingOptionsFiller("keyboardlayouts", CKeyboardLayout::SettingOptionsKeyboardLayoutsFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("keyboardlayouts", CKeyboardLayoutManager::SettingOptionsKeyboardLayoutsFiller);
   m_settingsManager->RegisterSettingOptionsFiller("loggingcomponents", CAdvancedSettings::SettingOptionsLoggingComponentsFiller);
 }
 
@@ -641,6 +664,7 @@ void CSettings::InitializeISettingsHandlers()
 #endif
   m_settingsManager->RegisterSettingsHandler(&CWakeOnAccess::Get());
   m_settingsManager->RegisterSettingsHandler(&CRssManager::Get());
+  m_settingsManager->RegisterSettingsHandler(&g_langInfo);
   m_settingsManager->RegisterSettingsHandler(&g_application);
 #if defined(TARGET_LINUX) && !defined(TARGET_ANDROID) && !defined(TARGET_BOXEE) && !defined(__UCLIBC__)
   m_settingsManager->RegisterSettingsHandler(&g_timezone);
@@ -762,17 +786,18 @@ void CSettings::InitializeISettingCallbacks()
   settingSet.insert("locale.subtitlelanguage");
   settingSet.insert("locale.language");
   settingSet.insert("locale.country");
+  settingSet.insert("locale.shortdateformat");
+  settingSet.insert("locale.longdateformat");
+  settingSet.insert("locale.timeformat");
+  settingSet.insert("locale.use24hourclock");
+  settingSet.insert("locale.temperatureunit");
+  settingSet.insert("locale.speedunit");
   m_settingsManager->RegisterCallback(&g_langInfo, settingSet);
 
-#if defined(HAS_SDL_JOYSTICK)
   settingSet.clear();
   settingSet.insert("input.enablejoystick");
-  m_settingsManager->RegisterCallback(&CInputManager::GetInstance().m_Joystick, settingSet);
-#endif
-
-  settingSet.clear();
   settingSet.insert("input.enablemouse");
-  m_settingsManager->RegisterCallback(&g_Mouse, settingSet);
+  m_settingsManager->RegisterCallback(&CInputManager::Get(), settingSet);
 
   settingSet.clear();
   settingSet.insert("services.webserver");

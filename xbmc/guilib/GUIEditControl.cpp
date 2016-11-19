@@ -24,7 +24,7 @@
 #include "GUIKeyboardFactory.h"
 #include "dialogs/GUIDialogNumeric.h"
 #include "input/XBMC_vkeys.h"
-#include "Key.h"
+#include "input/Key.h"
 #include "LocalizeStrings.h"
 #include "XBDateTime.h"
 #include "windowing/WindowingFactory.h"
@@ -35,7 +35,7 @@
 #include "osx/CocoaInterface.h"
 #endif
 
-const char* CGUIEditControl::smsLetters[10] = { " !@#$%^&*()[]{}<>/\\|0", ".,;:\'\"-+_=?`~1", "abc2", "def3", "ghi4", "jkl5", "mno6", "pqrs7", "tuv8", "wxyz9" };
+const char* CGUIEditControl::smsLetters[10] = { " !@#$%^&*()[]{}<>/\\|0", ".,;:\'\"-+_=?`~1", "abc2ABC", "def3DEF", "ghi4GHI", "jkl5JKL", "mno6MNO", "pqrs7PQRS", "tuv8TUV", "wxyz9WXYZ" };
 const unsigned int CGUIEditControl::smsDelay = 1000;
 
 using namespace std;
@@ -60,7 +60,6 @@ void CGUIEditControl::DefaultConstructor()
   m_textWidth = GetWidth();
   m_cursorPos = 0;
   m_cursorBlink = 0;
-  m_cursorShowAlways = false;
   m_inputHeading = 0;
   m_inputType = INPUT_TYPE_TEXT;
   m_smsLastKey = 0;
@@ -486,16 +485,19 @@ void CGUIEditControl::ProcessText(unsigned int currentTime)
     changed |= m_label2.SetMaxRect(m_clipRect.x1 + m_textOffset, m_posY, m_clipRect.Width() - m_textOffset, m_height);
 
     std::wstring text = GetDisplayedText();
-    // add the cursor and highlighting if we're focused
-    if ((HasFocus() || m_cursorShowAlways) && m_inputType != INPUT_TYPE_READONLY)
-      changed |= SetStyledText(text);
-    else
+    std::string hint = m_hintInfo.GetLabel(GetParentID());
+
+    if (!HasFocus() && text.empty() && !hint.empty())
     {
-      if (text.empty())
-        changed |= m_label2.SetText(m_hintInfo.GetLabel(GetParentID()));
-      else
-        changed |= m_label2.SetTextW(text);
+      changed |= m_label2.SetText(hint);
     }
+    else if ((HasFocus() || GetParentID() == WINDOW_DIALOG_KEYBOARD) &&
+             m_inputType != INPUT_TYPE_READONLY)
+    {
+      changed |= SetStyledText(text);
+    }
+    else
+      changed |= m_label2.SetTextW(text);
 
     changed |= m_label2.SetAlign(align);
     changed |= m_label2.SetColor(GetTextColor());
@@ -747,4 +749,14 @@ void CGUIEditControl::SetFocus(bool focus)
   g_Windowing.EnableTextInput(focus);
   CGUIControl::SetFocus(focus);
   SetInvalid();
+}
+
+std::string CGUIEditControl::GetDescriptionByIndex(int index) const
+{
+  if (index == 0)
+    return GetDescription();
+  else if(index == 1)
+    return GetLabel2();
+  
+  return "";
 }

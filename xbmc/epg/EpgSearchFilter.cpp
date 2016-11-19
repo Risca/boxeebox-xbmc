@@ -18,21 +18,18 @@
  *
  */
 
-#include "guilib/LocalizeStrings.h"
-#include "utils/TextSearch.h"
-#include "utils/log.h"
 #include "FileItem.h"
-#include "../addons/include/xbmc_pvr_types.h"
-
-#include "EpgSearchFilter.h"
-#include "EpgContainer.h"
-
+#include "addons/include/xbmc_pvr_types.h"
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
 #include "pvr/recordings/PVRRecordings.h"
 #include "pvr/timers/PVRTimers.h"
+#include "utils/TextSearch.h"
+#include "utils/log.h"
 
-using namespace std;
+#include "EpgContainer.h"
+#include "EpgSearchFilter.h"
+
 using namespace EPG;
 using namespace PVR;
 
@@ -176,7 +173,7 @@ bool EpgSearchFilter::MatchChannelNumber(const CEpgInfoTag &tag) const
     if (!group)
       group = CPVRManager::Get().ChannelGroups()->GetGroupAllTV();
 
-    bReturn = (m_iChannelNumber == (int) group->GetChannelNumber(*tag.ChannelTag()));
+    bReturn = (m_iChannelNumber == (int) group->GetChannelNumber(tag.ChannelTag()));
   }
 
   return bReturn;
@@ -189,7 +186,7 @@ bool EpgSearchFilter::MatchChannelGroup(const CEpgInfoTag &tag) const
   if (m_iChannelGroup != EPG_SEARCH_UNSET && g_PVRManager.IsStarted())
   {
     CPVRChannelGroupPtr group = g_PVRChannelGroups->GetByIdFromAll(m_iChannelGroup);
-    bReturn = (group && group->IsGroupMember(*tag.ChannelTag()));
+    bReturn = (group && group->IsGroupMember(tag.ChannelTag()));
   }
 
   return bReturn;
@@ -237,7 +234,7 @@ int EpgSearchFilter::FilterTimers(CFileItemList &results)
   if (!g_PVRManager.IsStarted())
     return iRemoved;
 
-  vector<CFileItemPtr> timers = g_PVRTimers->GetActiveTimers();
+  std::vector<CFileItemPtr> timers = g_PVRTimers->GetActiveTimers();
   // TODO inefficient!
   for (unsigned int iTimerPtr = 0; iTimerPtr < timers.size(); iTimerPtr++)
   {
@@ -245,7 +242,7 @@ int EpgSearchFilter::FilterTimers(CFileItemList &results)
     if (!fileItem || !fileItem->HasPVRTimerInfoTag())
       continue;
 
-    CPVRTimerInfoTag *timer = fileItem->GetPVRTimerInfoTag();
+    CPVRTimerInfoTagPtr timer = fileItem->GetPVRTimerInfoTag();
     if (!timer)
       continue;
 

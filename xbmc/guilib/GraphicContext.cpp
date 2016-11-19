@@ -20,7 +20,6 @@
 
 #include "system.h"
 #include "GraphicContext.h"
-#include "threads/SingleLock.h"
 #include "Application.h"
 #include "ApplicationMessenger.h"
 #include "settings/AdvancedSettings.h"
@@ -30,11 +29,9 @@
 #include "cores/VideoRenderers/RenderManager.h"
 #include "windowing/WindowingFactory.h"
 #include "TextureManager.h"
-#include "input/MouseStat.h"
+#include "input/InputManager.h"
 #include "GUIWindowManager.h"
-#include "utils/JobManager.h"
 #include "video/VideoReferenceClock.h"
-#include "cores/IPlayer.h"
 
 using namespace std;
 
@@ -52,6 +49,7 @@ CGraphicContext::CGraphicContext(void) :
   m_bFullScreenVideo(false),
   m_bCalibrating(false),
   m_Resolution(RES_INVALID),
+  m_fFPSOverride(0.0),
   /*m_windowResolution,*/
   /*,m_cameras, */
   /*m_origins, */
@@ -438,14 +436,17 @@ void CGraphicContext::SetVideoResolutionInternal(RESOLUTION res, bool forceUpdat
 
   RENDER_STEREO_MODE stereo_mode = m_stereoMode;
 
-  // if the new mode is an actual stereo mode, switch to that
-  // if the old mode was an actual stereo mode, switch to no 3d mode
+  // if the new resolution is an actual stereo mode, switch to that
+  // if the old resolution was an actual stereo mode and renderer is still in old 3D mode, switch to no 3d mode
   if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DTB)
     stereo_mode = RENDER_STEREO_MODE_SPLIT_HORIZONTAL;
   else if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
     stereo_mode = RENDER_STEREO_MODE_SPLIT_VERTICAL;
-  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DSBS) != 0
-        || (info_last.dwFlags & D3DPRESENTFLAG_MODE3DTB)  != 0)
+  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DTB)
+        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_HORIZONTAL)
+    stereo_mode = RENDER_STEREO_MODE_OFF;
+  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
+        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_VERTICAL)
     stereo_mode = RENDER_STEREO_MODE_OFF;
 
   if(stereo_mode != m_stereoMode)
@@ -463,6 +464,7 @@ void CGraphicContext::SetVideoResolutionInternal(RESOLUTION res, bool forceUpdat
   m_iScreenId     = info_mod.iScreen;
   m_scissors.SetRect(0, 0, (float)m_iScreenWidth, (float)m_iScreenHeight);
   m_Resolution    = res;
+  m_fFPSOverride = 0 ;
 
   if (g_advancedSettings.m_fullScreen)
   {
@@ -486,7 +488,7 @@ void CGraphicContext::SetVideoResolutionInternal(RESOLUTION res, bool forceUpdat
 
   // update anyone that relies on sizing information
   g_renderManager.Recover();
-  g_Mouse.SetResolution(info_org.iWidth, info_org.iHeight, 1, 1);
+  CInputManager::Get().SetMouseResolution(info_org.iWidth, info_org.iHeight, 1, 1);
   g_windowManager.SendMessage(GUI_MSG_NOTIFY_ALL, 0, 0, GUI_MSG_WINDOW_RESIZE);
 
   Unlock();
@@ -736,6 +738,12 @@ const RESOLUTION_INFO CGraphicContext::GetResInfo(RESOLUTION res) const
     info.Overscan.left   /= 2;
     info.Overscan.right   = (info.Overscan.right - info.iBlanking) / 2;
   }
+
+  if (res == m_Resolution && m_fFPSOverride != 0)
+  {
+    info.fRefreshRate = m_fFPSOverride;
+  }
+
   return info;
 }
 
@@ -1061,3 +1069,7 @@ void CGraphicContext::GetAllowedResolutions(vector<RESOLUTION> &res)
   }
 }
 
+void CGraphicContext::SetFPS(float fps)
+{
+  m_fFPSOverride = fps;
+}

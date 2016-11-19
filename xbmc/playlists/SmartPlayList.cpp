@@ -20,11 +20,9 @@
 
 #include "SmartPlayList.h"
 #include "Util.h"
-#include "XBDateTime.h"
 #include "filesystem/File.h"
 #include "filesystem/SmartPlaylistDirectory.h"
 #include "guilib/LocalizeStrings.h"
-#include "utils/CharsetConverter.h"
 #include "utils/DatabaseUtils.h"
 #include "utils/JSONVariantParser.h"
 #include "utils/JSONVariantWriter.h"
@@ -296,6 +294,7 @@ vector<Field> CSmartPlaylistRule::GetFields(const std::string &type)
     fields.push_back(FieldLastPlayed);
     fields.push_back(FieldRating);
     fields.push_back(FieldComment);
+    fields.push_back(FieldMoods);
   }
   else if (type == "albums")
   {
@@ -372,6 +371,7 @@ vector<Field> CSmartPlaylistRule::GetFields(const std::string &type)
     fields.push_back(FieldStudio);
     fields.push_back(FieldMPAA);
     fields.push_back(FieldDateAdded);
+    fields.push_back(FieldTag);
     isVideo = true;
   }
   else if (type == "movies")
@@ -780,7 +780,7 @@ std::string CSmartPlaylistRule::FormatWhereClause(const std::string &negate, con
     if (m_field == FieldGenre)
       query = negate + FormatLinkQuery("genre", "genre", MediaTypeMusicVideo, GetField(FieldId, strType), parameter);
     else if (m_field == FieldArtist || m_field == FieldAlbumArtist)
-      query = negate + FormatLinkQuery("artist", "actor", MediaTypeMusicVideo, GetField(FieldId, strType), parameter);
+      query = negate + FormatLinkQuery("actor", "actor", MediaTypeMusicVideo, GetField(FieldId, strType), parameter);
     else if (m_field == FieldStudio)
       query = negate + FormatLinkQuery("studio", "studio", MediaTypeMusicVideo, GetField(FieldId, strType), parameter);
     else if (m_field == FieldDirector)
@@ -817,6 +817,8 @@ std::string CSmartPlaylistRule::FormatWhereClause(const std::string &negate, con
 
     if (m_field == FieldGenre)
       query = negate + FormatLinkQuery("genre", "genre", MediaTypeTvShow, (table + ".idShow").c_str(), parameter);
+    else if (m_field == FieldTag)
+      query = negate + FormatLinkQuery("tag", "tag", MediaTypeTvShow, (table + ".idShow").c_str(), parameter);
     else if (m_field == FieldDirector)
       query = negate + FormatLinkQuery("director", "actor", MediaTypeEpisode, GetField(FieldId, strType), parameter);
     else if (m_field == FieldActor)

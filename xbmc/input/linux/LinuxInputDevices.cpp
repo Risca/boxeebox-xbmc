@@ -227,6 +227,7 @@ KeyMap keyMap[] = {
   { KEY_POWER         , XBMCK_POWER       },
   { KEY_KPEQUAL       , XBMCK_KP_EQUALS   },
   { KEY_PAUSE         , XBMCK_PAUSE       },
+  { KEY_PAUSECD       , XBMCK_PAUSE       },
   { KEY_LEFTMETA      , XBMCK_LMETA       },
   { KEY_RIGHTMETA     , XBMCK_RMETA       },
   { KEY_COMPOSE       , XBMCK_LSUPER      },
@@ -246,6 +247,7 @@ KeyMap keyMap[] = {
   { KEY_SCROLLUP      , XBMCK_PAGEUP      },
   { KEY_SCROLLDOWN    , XBMCK_PAGEDOWN    },
   { KEY_PLAY          , XBMCK_PLAY        },
+  { KEY_PLAYCD        , XBMCK_PLAY        },
   { KEY_FASTFORWARD   , XBMCK_FASTFORWARD },
   { KEY_PRINT         , XBMCK_PRINT       },
   { KEY_QUESTION      , XBMCK_HELP        },
@@ -255,6 +257,8 @@ KeyMap keyMap[] = {
   { 378               , XBMCK_RIGHT       }, // Green
   { 381               , XBMCK_UP          }, // Yellow
   { 366               , XBMCK_DOWN        }, // Blue
+  // Rii i7 Home button / wetek openelec remote (code 172)
+  { KEY_HOMEPAGE      , XBMCK_HOME        },
 };
 
 typedef enum

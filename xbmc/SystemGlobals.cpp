@@ -20,8 +20,6 @@
 #include "system.h"
 #include "cores/VideoRenderers/RenderManager.h"
 #include "cores/DataCacheCore.h"
-#include "input/MouseStat.h"
-#include "Application.h"
 #include "GUILargeTextureManager.h"
 #include "guilib/TextureManager.h"
 #include "utils/AlarmClock.h"
@@ -33,7 +31,6 @@
 #include "PartyModeManager.h"
 #include "PlayListPlayer.h"
 #include "guilib/LocalizeStrings.h"
-#include "guilib/GUIWindowManager.h"
 #ifdef HAS_PYTHON
 #include "interfaces/python/XBPython.h"
 #endif
@@ -56,7 +53,6 @@
 
   CGUITextureManager g_TextureManager;
   CGUILargeTextureManager g_largeTextureManager;
-  CMouseStat         g_Mouse;
 
   CGUIPassword       g_passwordManager;
   CGUIInfoManager    g_infoManager;

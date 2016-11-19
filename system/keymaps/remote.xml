@@ -167,6 +167,11 @@
       <star>Queue</star>
     </remote>
   </MyMusicLibrary>
+  <MyPictures>
+    <remote>
+      <clear>Delete</clear>
+    </remote>
+  </MyPictures>
   <FullscreenVideo>
     <remote>
       <zero>Number0</zero>
@@ -230,9 +235,11 @@
       <right>StepForward</right>
       <up>SkipNext</up>
       <down>SkipPrevious</down>
+      <pageplus>IncreaseRating</pageplus>
+      <pageminus>DecreaseRating</pageminus>
       <back>Back</back>
       <title>CodecInfo</title>
-      <select>ActivateWindow(VisualisationPresetList)</select>
+      <select>OSD</select>
       <menu>OSD</menu>
       <contentsmenu>OSD</contentsmenu>
       <rootmenu>OSD</rootmenu>

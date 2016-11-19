@@ -20,15 +20,14 @@
 
 #include "GUIWindowPVRChannels.h"
 
-#include "dialogs/GUIDialogFileBrowser.h"
-#include "dialogs/GUIDialogNumeric.h"
+#include "ContextMenuManager.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "guilib/GUIKeyboardFactory.h"
 #include "guilib/GUIRadioButtonControl.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "GUIInfoManager.h"
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
@@ -37,8 +36,7 @@
 #include "pvr/addons/PVRClients.h"
 #include "pvr/timers/PVRTimers.h"
 #include "epg/EpgContainer.h"
-#include "settings/Settings.h"
-#include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "threads/SingleLock.h"
 
 using namespace PVR;
@@ -73,7 +71,7 @@ void CGUIWindowPVRChannels::GetContextButtons(int itemNumber, CContextButtons &b
   if (itemNumber < 0 || itemNumber >= m_vecItems->Size())
     return;
   CFileItemPtr pItem = m_vecItems->Get(itemNumber);
-  CPVRChannel *channel = pItem->GetPVRChannelInfoTag();
+  CPVRChannelPtr channel(pItem->GetPVRChannelInfoTag());
 
   buttons.Add(CONTEXT_BUTTON_INFO, 19047);                                          /* channel info */
   buttons.Add(CONTEXT_BUTTON_FIND, 19003);                                          /* find similar program */
@@ -84,8 +82,10 @@ void CGUIWindowPVRChannels::GetContextButtons(int itemNumber, CContextButtons &b
 
   // Add parent buttons before the Manage button
   CGUIWindowPVRBase::GetContextButtons(itemNumber, buttons);
-    
+
   buttons.Add(CONTEXT_BUTTON_EDIT, 16106);                                          /* "Manage" submenu */
+
+  CContextMenuManager::Get().AddVisibleItems(pItem, buttons);
 }
 
 std::string CGUIWindowPVRChannels::GetDirectoryPath(void)
@@ -162,6 +162,9 @@ bool CGUIWindowPVRChannels::OnAction(const CAction &action)
 
 bool CGUIWindowPVRChannels::OnMessage(CGUIMessage& message)
 {
+  if (!IsValidMessage(message))
+    return false;
+
   bool bReturn = false;
   switch (message.GetMessage())
   {
@@ -220,6 +223,8 @@ bool CGUIWindowPVRChannels::OnMessage(CGUIMessage& message)
       {
         case ObservableMessageChannelGroup:
         case ObservableMessageTimers:
+        case ObservableMessageEpg:
+        case ObservableMessageEpgContainer:
         case ObservableMessageEpgActiveItem:
         case ObservableMessageCurrentItem:
         {
@@ -248,7 +253,7 @@ bool CGUIWindowPVRChannels::OnContextButtonAdd(CFileItem *item, CONTEXT_BUTTON b
 
   if (button == CONTEXT_BUTTON_ADD)
   {
-    CGUIDialogOK::ShowAndGetInput(19033,0,19038,0);
+    CGUIDialogOK::ShowAndGetInput(19033, 19038);
     bReturn = true;
   }
 
@@ -325,10 +330,10 @@ bool CGUIWindowPVRChannels::OnContextButtonManage(CFileItem *item, CONTEXT_BUTTO
 bool CGUIWindowPVRChannels::OnContextButtonRecord(CFileItem *item, CONTEXT_BUTTON button)
 {
   bool bReturn(false);
-  
+
   if (button == CONTEXT_BUTTON_RECORD_ITEM)
   {
-    CPVRChannel *channel = item->GetPVRChannelInfoTag();
+    CPVRChannelPtr channel(item->GetPVRChannelInfoTag());
 
     if (channel)
       return g_PVRManager.ToggleRecordingOnChannel(channel->ChannelID());
@@ -347,7 +352,8 @@ bool CGUIWindowPVRChannels::OnContextButtonUpdateEpg(CFileItem *item, CONTEXT_BU
     if (!pDialog)
       return bReturn;
 
-    CPVRChannel *channel = item->GetPVRChannelInfoTag();
+    CPVRChannelPtr channel(item->GetPVRChannelInfoTag());
+
     pDialog->SetHeading(19251);
     pDialog->SetLine(0, g_localizeStrings.Get(19252));
     pDialog->SetLine(1, channel->ChannelName());

@@ -25,7 +25,6 @@
 #include "guilib/Texture.h"
 #include "guilib/LocalizeStrings.h"
 #include "dialogs/GUIDialogKaiToast.h"
-#include "cores/IPlayer.h"
 #include "settings/Settings.h"
 
 using namespace std;
@@ -35,8 +34,8 @@ static int teletextFadeAmount = 0;
 CGUIDialogTeletext::CGUIDialogTeletext()
     : CGUIDialog(WINDOW_DIALOG_OSD_TELETEXT, "")
 {
-  m_isDialog    = false;
   m_pTxtTexture = NULL;
+  m_renderOrder = INT_MAX - 3;
 }
 
 CGUIDialogTeletext::~CGUIDialogTeletext()

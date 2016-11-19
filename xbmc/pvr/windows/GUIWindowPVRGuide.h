@@ -22,8 +22,7 @@
 
 #include "GUIWindowPVRBase.h"
 #include "epg/GUIEPGGridContainer.h"
-#include "threads/CriticalSection.h"
-#include "../channels/PVRChannelGroup.h"
+#include "threads/SystemClock.h"
 
 class CSetting;
 
@@ -35,16 +34,17 @@ namespace PVR
     CGUIWindowPVRGuide(bool bRadio);
     virtual ~CGUIWindowPVRGuide(void);
 
+    virtual void OnInitWindow();
     bool OnMessage(CGUIMessage& message);
     bool OnAction(const CAction &action);
     void GetContextButtons(int itemNumber, CContextButtons &buttons);
     bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
-    bool Update(const std::string &strDirectory, bool updateFilterPath = true);
     void ResetObservers(void);
     void UnregisterObservers(void);
 
   protected:
     void UpdateSelectedItemPath();
+    virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
 
   private:
     bool SelectPlayingFile(void);
@@ -57,14 +57,16 @@ namespace PVR
     bool OnContextButtonStartRecord(CFileItem *item, CONTEXT_BUTTON button);
     bool OnContextButtonStopRecord(CFileItem *item, CONTEXT_BUTTON button);
 
-    void UpdateViewChannel();
-    void UpdateViewNow();
-    void UpdateViewNext();
-    void UpdateViewTimeline();
+    void GetViewChannelItems(CFileItemList &items);
+    void GetViewNowItems(CFileItemList &items);
+    void GetViewNextItems(CFileItemList &items);
+    void GetViewTimelineItems(CFileItemList &items);
 
     CFileItemList      *m_cachedTimeline;
     CPVRChannelGroupPtr m_cachedChannelGroup;
 
     bool m_bUpdateRequired;
+
+    XbmcThreads::EndTime m_nextUpdateTimeout;
   };
 }

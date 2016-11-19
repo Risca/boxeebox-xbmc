@@ -19,10 +19,8 @@
  */
 
 #include "GUIButtonControl.h"
-#include "GUIWindowManager.h"
-#include "GUIDialog.h"
 #include "GUIFontManager.h"
-#include "Key.h"
+#include "input/Key.h"
 
 using namespace std;
 
@@ -258,6 +256,7 @@ bool CGUIButtonControl::UpdateColors()
 {
   bool changed = CGUIControl::UpdateColors();
   changed |= m_label.UpdateColors();
+  changed |= m_label2.UpdateColors();
   changed |= m_imgFocus.SetDiffuseColor(m_diffuseColor);
   changed |= m_imgNoFocus.SetDiffuseColor(m_diffuseColor);
 

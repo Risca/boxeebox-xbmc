@@ -21,7 +21,6 @@
  */
 
 #include <memory>
-#include "threads/SingleLock.h"
 #include "threads/SystemClock.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 
@@ -35,6 +34,7 @@ typedef enum
 namespace PVR
 {
   class CPVRChannel;
+  typedef std::shared_ptr<PVR::CPVRChannel> CPVRChannelPtr;
 }
 
 class CAction;
@@ -79,7 +79,7 @@ public:
   void SetPlaySpeed(int iSpeed, bool bApplicationMuted);
 
   // proxy calls
-  int   AddSubtitle(const std::string& strSubPath);
+  void   AddSubtitle(const std::string& strSubPath);
   bool  CanPause();
   bool  CanRecord();
   bool  CanSeek();
@@ -94,13 +94,15 @@ public:
   float GetCachePercentage() const;
   int   GetChapterCount();
   int   GetChapter();  
-  void  GetChapterName(std::string& strChapterName);
+  void  GetChapterName(std::string& strChapterName, int chapterIdx=-1);
+  int64_t GetChapterPos(int chapterIdx=-1);
   void  GetDeinterlaceMethods(std::vector<int> &deinterlaceMethods);
   void  GetDeinterlaceModes(std::vector<int> &deinterlaceModes);
   void  GetGeneralInfo(std::string& strVideoInfo);
   float GetPercentage() const;
   std::string GetPlayerState();
   std::string GetPlayingTitle();
+  int   GetPreferredPlaylist() const;
   void  GetRenderFeatures(std::vector<int> &renderFeatures);
   void  GetScalingMethods(std::vector<int> &scalingMethods);
   bool  GetStreamDetails(CStreamDetails &details);
@@ -111,6 +113,7 @@ public:
   bool  GetSubtitleVisible();
   TextCacheStruct_t* GetTeletextCache();
   int64_t GetTime() const;
+  int64_t GetDisplayTime() const;
   int64_t GetTotalTime() const;
   void  GetVideoInfo(std::string& strVideoInfo);
   void  GetVideoStreamInfo(SPlayerVideoStreamInfo &info);
@@ -137,6 +140,7 @@ public:
   void  SeekPercentage(float fPercent = 0);
   bool  SeekScene(bool bPlus = true);
   void  SeekTime(int64_t iTime = 0);
+  void  SeekTimeRelative(int64_t iTime = 0);
   void  SetAudioStream(int iStream);
   void  SetAVDelay(float fValue = 0.0f);
   void  SetDynamicRangeCompression(long drc);
@@ -146,6 +150,6 @@ public:
   void  SetSubTitleDelay(float fValue = 0.0f);
   void  SetSubtitleVisible(bool bVisible);
   void  SetVolume(float volume);
-  bool  SwitchChannel(PVR::CPVRChannel &channel);
+  bool  SwitchChannel(const PVR::CPVRChannelPtr &channel);
   void  ToFFRW(int iSpeed = 0);
 };

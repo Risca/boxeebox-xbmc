@@ -28,15 +28,16 @@
 #include "GUIControlFactory.h"
 #include "filesystem/Directory.h"
 #include "filesystem/File.h"
-#include "filesystem/SpecialProtocol.h"
 #include "settings/lib/Setting.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
-#include "windowing/WindowingFactory.h"
 #include "FileItem.h"
 #include "URL.h"
-#include "Util.h"
+
+#ifdef TARGET_POSIX
+#include "filesystem/SpecialProtocol.h"
+#endif
 
 using namespace std;
 
@@ -440,6 +441,8 @@ void GUIFontManager::GetStyle(const TiXmlNode *fontNode, int &iStyle)
         iStyle |= FONT_STYLE_UPPERCASE;
       else if (*i == "lowercase")
         iStyle |= FONT_STYLE_LOWERCASE;
+      else if (*i == "capitalize")
+        iStyle |= FONT_STYLE_CAPITALIZE;
     }
   }
 }

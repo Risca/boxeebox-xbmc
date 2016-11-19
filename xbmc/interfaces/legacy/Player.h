@@ -26,7 +26,6 @@
 #include "PlayList.h"
 #include "InfoTagVideo.h"
 #include "Exception.h"
-#include "music/tags/MusicInfoTag.h"
 #include "AddonString.h"
 #include "InfoTagMusic.h"
 #include "AddonCallback.h"
@@ -125,7 +124,7 @@ namespace XBMCAddon
       /**
        * onPlayBackStarted() -- onPlayBackStarted method.
        * 
-       * Will be called when xbmc starts playing a file
+       * Will be called when Kodi starts playing a file
        */
       // Player_OnPlayBackStarted
       virtual void onPlayBackStarted();
@@ -134,7 +133,7 @@ namespace XBMCAddon
       /**
        * onPlayBackEnded() -- onPlayBackEnded method.
        * 
-       * Will be called when xbmc stops playing a file
+       * Will be called when Kodi stops playing a file
        */
       // Player_OnPlayBackEnded
       virtual void onPlayBackEnded();
@@ -142,7 +141,7 @@ namespace XBMCAddon
       /**
        * onPlayBackStopped() -- onPlayBackStopped method.
        * 
-       * Will be called when user stops xbmc playing a file
+       * Will be called when user stops Kodi playing a file
        */
       // Player_OnPlayBackStopped
       virtual void onPlayBackStopped();
@@ -201,19 +200,19 @@ namespace XBMCAddon
       virtual void onPlayBackSeekChapter(int chapter);
 
       /**
-       * isPlaying() -- returns True is xbmc is playing a file.
+       * isPlaying() -- returns True is Kodi is playing a file.
        */
       // Player_IsPlaying
       bool isPlaying();
 
       /**
-       * isPlayingAudio() -- returns True is xbmc is playing an audio file.
+       * isPlayingAudio() -- returns True is Kodi is playing an audio file.
        */
       // Player_IsPlayingAudio
       bool isPlayingAudio();
 
       /**
-       * isPlayingVideo() -- returns True if xbmc is playing a video.
+       * isPlayingVideo() -- returns True if Kodi is playing a video.
        */
       // Player_IsPlayingVideo
       bool isPlayingVideo();
@@ -225,7 +224,7 @@ namespace XBMCAddon
        * Throws: Exception, if player is not playing a file.\n
        */
       // Player_GetPlayingFile
-      String getPlayingFile() throw (PlayerException);
+      String getPlayingFile();
 
       /**
        * getTime() -- Returns the current time of the current playing media as fractional seconds.
@@ -233,7 +232,7 @@ namespace XBMCAddon
        * Throws: Exception, if player is not playing a file.
        */
       // Player_GetTime
-      double getTime() throw(PlayerException);
+      double getTime();
 
       /**
        * seekTime() -- Seeks the specified amount of time as fractional seconds.
@@ -243,7 +242,7 @@ namespace XBMCAddon
        * Throws: Exception, if player is not playing a file.
        */
       // Player_SeekTime
-      void seekTime(double seekTime) throw(PlayerException);
+      void seekTime(double seekTime);
 
       /**
        * setSubtitles() -- set subtitle file and enable subtitlesn
@@ -296,7 +295,7 @@ namespace XBMCAddon
        * 
        * Throws: Exception, if player is not playing a file or current file is not a movie file.
        */
-      InfoTagVideo* getVideoInfoTag() throw (PlayerException);
+      InfoTagVideo* getVideoInfoTag();
 
       /**
        * getMusicInfoTag() -- returns the MusicInfoTag of the current playing 'Song'.
@@ -304,7 +303,7 @@ namespace XBMCAddon
        * Throws: Exception, if player is not playing a file or current file is not a music file.
        */
       // Player_GetMusicInfoTag
-      InfoTagMusic* getMusicInfoTag() throw (PlayerException);
+      InfoTagMusic* getMusicInfoTag();
 
       /**
        * getTotalTime() -- Returns the total time of the current playing media in
@@ -312,7 +311,7 @@ namespace XBMCAddon
        *
        * Throws: Exception, if player is not playing a file.
        */
-      double getTotalTime() throw (PlayerException);
+      double getTotalTime();
 
       // Player_getAvailableAudioStreams
       /**

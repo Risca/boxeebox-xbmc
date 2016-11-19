@@ -19,7 +19,7 @@
       <swipe direction="right">StepForward</swipe>
       <swipe direction="up">ChapterOrBigStepForward</swipe>
       <swipe direction="down">ChapterOrBigStepBack</swipe>
-      <swipe direction="left" pointers="2">SmallStepBack</swipe>
+      <swipe direction="left" pointers="2">Seek(-7)</swipe>
     </touch>
   </FullScreenVideo>
   <Visualisation>
@@ -43,4 +43,13 @@
       <swipe direction="right">Highlight</swipe>
     </touch>
   </MyFiles>
+  <ScreenCalibration>
+    <touch>
+      <swipe direction="up">Up</swipe>
+      <swipe direction="down">Down</swipe>
+      <swipe direction="right">Right</swipe>
+      <swipe direction="left">Left</swipe>
+      <tap pointers="1">NextCalibration</tap>
+    </touch>
+  </ScreenCalibration>
 </keymap>

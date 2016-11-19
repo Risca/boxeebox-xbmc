@@ -25,25 +25,24 @@
 #include "Util.h"
 #include "Application.h"
 #include "GUIPassword.h"
-#include "dialogs/GUIDialogMediaSource.h"
 #include "GUIDialogPictureInfo.h"
 #include "addons/GUIDialogAddonInfo.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "playlists/PlayListFactory.h"
 #include "PictureInfoLoader.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "dialogs/GUIDialogOK.h"
-#include "dialogs/GUIDialogYesNo.h"
 #include "playlists/PlayList.h"
 #include "settings/MediaSourceSettings.h"
 #include "settings/Settings.h"
-#include "utils/TimeUtils.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
 #include "Autorun.h"
 #include "interfaces/AnnouncementManager.h"
 #include "utils/StringUtils.h"
+#include "ContextMenuManager.h"
+#include "GUIWindowSlideShow.h"
 
 #define CONTROL_BTNVIEWASICONS      2
 #define CONTROL_BTNSORTBY           3
@@ -502,6 +501,8 @@ void CGUIWindowPictures::GetContextButtons(int itemNumber, CContextButtons &butt
   CGUIMediaWindow::GetContextButtons(itemNumber, buttons);
   if (item && !item->GetProperty("pluginreplacecontextitems").asBoolean())
     buttons.Add(CONTEXT_BUTTON_SETTINGS, 5);                  // Settings
+
+  CContextMenuManager::Get().AddVisibleItems(item, buttons);
 }
 
 bool CGUIWindowPictures::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
@@ -564,7 +565,7 @@ void CGUIWindowPictures::LoadPlayList(const std::string& strPlayList)
   {
     if (!pPlayList->Load(strPlayList))
     {
-      CGUIDialogOK::ShowAndGetInput(6, 0, 477, 0);
+      CGUIDialogOK::ShowAndGetInput(6, 477);
       return ; //hmmm unable to load playlist?
     }
   }

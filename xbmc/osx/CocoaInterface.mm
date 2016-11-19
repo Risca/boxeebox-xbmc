@@ -24,6 +24,7 @@
 #define BOOL XBMC_BOOL 
 #include "utils/log.h"
 #include "CompileInfo.h"
+#include "windowing/WindowingFactory.h"
 #undef BOOL
 
 #import <Cocoa/Cocoa.h>
@@ -51,12 +52,17 @@ static CVDisplayLinkRef displayLink = NULL;
 
 CGDirectDisplayID Cocoa_GetDisplayIDFromScreen(NSScreen *screen);
 
+NSOpenGLContext* Cocoa_GL_GetCurrentContext(void)
+{
+  return (NSOpenGLContext *)g_Windowing.GetNSOpenGLContext();
+}
+
 uint32_t Cocoa_GL_GetCurrentDisplayID(void)
 {
   // Find which display we are on from the current context (default to main display)
   CGDirectDisplayID display_id = kCGDirectMainDisplay;
   
-  NSOpenGLContext* context = [NSOpenGLContext currentContext];
+  NSOpenGLContext* context = Cocoa_GL_GetCurrentContext();
   if (context)
   {
     NSView* view;
@@ -280,54 +286,32 @@ char* Cocoa_MountPoint2DeviceName(char *path)
 bool Cocoa_GetVolumeNameFromMountPoint(const std::string &mountPoint, std::string &volumeName)
 {
   CCocoaAutoPool pool;
-  unsigned i, count = 0;
-  struct statfs *buf = NULL;
-  std::string mountpoint, devicepath;
-
-  count = getmntinfo(&buf, 0);
-  for (i=0; i<count; i++)
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSArray *mountedVolumeUrls = [fm mountedVolumeURLsIncludingResourceValuesForKeys:@[ NSURLVolumeNameKey, NSURLPathKey ] options:0];
+  bool resolved = false;
+  
+  for (NSURL *volumeURL in mountedVolumeUrls)
   {
-    mountpoint = buf[i].f_mntonname;
-    if (mountpoint == mountPoint)
+    NSString *path;
+    BOOL success = [volumeURL getResourceValue:&path forKey:NSURLPathKey error:nil];
+    
+    if (success && path != nil)
     {
-      devicepath = buf[i].f_mntfromname;
-      break;
+      std::string mountpoint = [path UTF8String];
+      if (mountpoint == mountPoint)
+      {
+        NSString *name;
+        success = [volumeURL getResourceValue:&name forKey:NSURLVolumeNameKey error:nil];
+        if (success && name != nil)
+        {
+          volumeName = [name UTF8String];
+          resolved = true;
+          break;
+        }
+      }
     }
   }
-  if (devicepath.empty())
-  {
-    return false;
-  }
-
-  DASessionRef session = DASessionCreate(kCFAllocatorDefault);
-  if (!session)
-  {
-      return false;
-  }
-
-  DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, devicepath.c_str());
-  if (!disk)
-  {
-      CFRelease(session);
-      return false;
-  }
-
-  NSDictionary *dd = (NSDictionary*) DADiskCopyDescription(disk);
-  if (!dd)
-  {
-      CFRelease(session);
-      CFRelease(disk);
-      return false;
-  }
-
-  NSString *volumename = [dd objectForKey:(NSString*)kDADiskDescriptionVolumeNameKey];
-  volumeName = [volumename UTF8String];
-
-  CFRelease(session);		        
-  CFRelease(disk);		        
-  [dd release];
-
-  return true ;
+  return resolved;
 }
 
 /*
@@ -437,7 +421,7 @@ NSWindow* mainWindow = nil;
 
 void Cocoa_MakeChildWindow()
 {
-  NSOpenGLContext* context = [NSOpenGLContext currentContext];
+  NSOpenGLContext* context = Cocoa_GL_GetCurrentContext();
   NSView* view = [context view];
   NSWindow* window = [view window];
 

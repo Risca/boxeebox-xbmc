@@ -20,7 +20,6 @@
 
 #include "PeripheralNyxboard.h"
 #include "PeripheralHID.h"
-#include "guilib/Key.h"
 #include "utils/log.h"
 #include "Application.h"
 

@@ -28,7 +28,6 @@
 #include "Util.h"
 #include "utils/md5.h"
 #include "GUIInfoManager.h"
-#include "utils/Variant.h"
 #include "NfoFile.h"
 #include "music/tags/MusicInfoTag.h"
 #include "guilib/GUIWindowManager.h"
@@ -43,7 +42,6 @@
 #include "FileItem.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/StringUtils.h"
-#include "utils/TimeUtils.h"
 #include "utils/log.h"
 #include "utils/URIUtils.h"
 #include "TextureCache.h"
@@ -52,7 +50,6 @@
 #include "GUIUserMessages.h"
 #include "addons/AddonManager.h"
 #include "addons/Scraper.h"
-#include "CueDocument.h"
 
 #include <algorithm>
 
@@ -444,7 +441,7 @@ bool CMusicInfoScanner::DoScan(const std::string& strDirectory)
 
   // load subfolder
   CFileItemList items;
-  CDirectory::GetDirectory(strDirectory, items, g_advancedSettings.m_musicExtensions + "|.jpg|.tbn|.lrc|.cdg");
+  CDirectory::GetDirectory(strDirectory, items, g_advancedSettings.GetMusicExtensions() + "|.jpg|.tbn|.lrc|.cdg");
 
   // sort and get the path hash.  Note that we don't filter .cue sheet items here as we want
   // to detect changes in the .cue sheet as well.  The .cue sheet items only need filtering
@@ -533,7 +530,7 @@ INFO_RET CMusicInfoScanner::ScanTags(const CFileItemList& items, CFileItemList& 
     CMusicInfoTag& tag = *pItem->GetMusicInfoTag();
     if (!tag.Loaded())
     {
-      unique_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(pItem->GetPath()));
+      unique_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(*pItem));
       if (NULL != pLoader.get())
         pLoader->Load(pItem->GetPath(), tag);
     }
@@ -765,6 +762,10 @@ int CMusicInfoScanner::RetrieveMusicInfo(const std::string& strDirectory, CFileI
   {
     if (m_bStop)
       break;
+
+    // mark albums without a title as singles
+    if (album->strAlbum.empty())
+      album->releaseType = CAlbum::Single;
 
     album->strPath = strDirectory;
     m_musicDatabase.AddAlbum(*album);
@@ -1487,7 +1488,7 @@ int CMusicInfoScanner::CountFilesRecursively(const std::string& strPath)
 {
   // load subfolder
   CFileItemList items;
-  CDirectory::GetDirectory(strPath, items, g_advancedSettings.m_musicExtensions, DIR_FLAG_NO_FILE_DIRS);
+  CDirectory::GetDirectory(strPath, items, g_advancedSettings.GetMusicExtensions(), DIR_FLAG_NO_FILE_DIRS);
 
   if (m_bStop)
     return 0;

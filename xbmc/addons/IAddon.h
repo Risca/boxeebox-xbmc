@@ -50,6 +50,10 @@ namespace ADDON
     ADDON_WEB_INTERFACE,
     ADDON_SERVICE,
     ADDON_AUDIOENCODER,
+    ADDON_CONTEXT_ITEM,
+    ADDON_AUDIODECODER,
+    ADDON_RESOURCE_LANGUAGE,
+    ADDON_RESOURCE_UISOUNDS,
     ADDON_VIDEO, // virtual addon types
     ADDON_AUDIO,
     ADDON_IMAGE,
@@ -116,8 +120,8 @@ namespace ADDON
     virtual void OnDisabled() =0;
     virtual void OnEnabled() =0;
     virtual AddonPtr GetRunningInstance() const=0;
-    virtual bool OnPreInstall() =0;
-    virtual void OnPostInstall(bool restart, bool update) =0;
+    virtual void OnPreInstall() =0;
+    virtual void OnPostInstall(bool update, bool modal) =0;
     virtual void OnPreUnInstall() =0;
     virtual void OnPostUnInstall() =0;
     virtual bool CanInstall(const std::string& referer) =0;
@@ -127,9 +131,6 @@ namespace ADDON
 
   private:
     friend class CAddonMgr;
-    virtual bool IsAddonLibrary() =0;
-    virtual void Enable() =0;
-    virtual void Disable() =0;
     virtual bool LoadStrings() =0;
     virtual void ClearStrings() =0;
   };

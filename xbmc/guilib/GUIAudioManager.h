@@ -26,7 +26,6 @@
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "settings/lib/ISettingCallback.h"
 #include "threads/CriticalSection.h"
-#include "utils/log.h"
 
 // forward definitions
 class CAction;
@@ -56,6 +55,7 @@ public:
   ~CGUIAudioManager();
 
   virtual void OnSettingChanged(const CSetting *setting);
+  virtual bool OnSettingUpdate(CSetting* &setting, const char *oldSettingId, const TiXmlNode *oldSettingNode);
 
   void Initialize();
   void DeInitialize();

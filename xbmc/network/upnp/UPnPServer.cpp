@@ -278,9 +278,11 @@ CUPnPServer::Build(CFileItemPtr                  item,
             object->m_ObjectID = "0";
             object->m_ParentID = "-1";
             // root has 5 children
-            if (with_count) {
-                ((PLT_MediaContainer*)object)->m_ChildrenCount = 5;
-            }
+            
+            //This is dead code because of the HACK a few lines up setting with_count to false
+            //if (with_count) {
+            //    ((PLT_MediaContainer*)object)->m_ChildrenCount = 5;
+            //}
         } else {
             goto failure;
         }
@@ -377,7 +379,7 @@ CUPnPServer::Build(CFileItemPtr                  item,
         }
 
         // not a virtual path directory, new system
-        object = BuildObject(*item.get(), file_path, with_count, thumb_loader, &context, this);
+        object = BuildObject(*item.get(), file_path, with_count, thumb_loader, &context, this, UPnPContentDirectory);
 
         // set parent id if passed, otherwise it should have been determined
         if (object && parent_id) {
@@ -675,7 +677,7 @@ CUPnPServer::OnBrowseDirectChildren(PLT_ActionReference&          action,
             // request came from
             string supported = g_advancedSettings.m_pictureExtensions + "|"
                              + g_advancedSettings.m_videoExtensions + "|"
-                             + g_advancedSettings.m_musicExtensions + "|"
+                             + g_advancedSettings.GetMusicExtensions() + "|"
                              + g_advancedSettings.m_discStubExtensions;
             CDirectory::GetDirectory((const char*)parent_id, items, supported);
             DefaultSortItems(items);

@@ -31,6 +31,9 @@ class CHTTPVfsHandler;
 class CHTTPJsonRpcHandler;
 #endif // HAS_JSONRPC
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+class CHTTPPythonHandler;
+#endif
 class CHTTPWebinterfaceHandler;
 class CHTTPWebinterfaceAddonsHandler;
 #endif // HAS_WEB_INTERFACE
@@ -73,6 +76,9 @@ public:
   bool StartUPnPClient();
   bool IsUPnPClientRunning();
   bool StopUPnPClient();
+  bool StartUPnPController();
+  bool IsUPnPControllerRunning();
+  bool StopUPnPController();
   bool StartUPnPRenderer();
   bool IsUPnPRendererRunning();
   bool StopUPnPRenderer();
@@ -105,6 +111,9 @@ private:
   CHTTPJsonRpcHandler& m_httpJsonRpcHandler;
 #endif
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+  CHTTPPythonHandler& m_httpPythonHandler;
+#endif
   CHTTPWebinterfaceHandler& m_httpWebinterfaceHandler;
   CHTTPWebinterfaceAddonsHandler& m_httpWebinterfaceAddonsHandler;
 #endif

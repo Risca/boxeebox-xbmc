@@ -36,6 +36,7 @@
 #include "utils/TimeUtils.h"
 #include "DVDCodecs/DVDCodecUtils.h"
 #include "cores/VideoRenderers/RenderFlags.h"
+#include "utils/log.h"
 
 using namespace Actor;
 using namespace VDPAU;
@@ -482,7 +483,7 @@ CDecoder::CDecoder() : m_vdpauOutput(&m_inMsgEvent)
   m_vdpauConfig.context = 0;
 }
 
-bool CDecoder::Open(AVCodecContext* avctx, const enum PixelFormat fmt, unsigned int surfaces)
+bool CDecoder::Open(AVCodecContext* avctx, AVCodecContext* mainctx, const enum PixelFormat fmt, unsigned int surfaces)
 {
   // check if user wants to decode this format with VDPAU
   std::string gpuvendor = g_Windowing.GetRenderVendor();
@@ -568,9 +569,13 @@ bool CDecoder::Open(AVCodecContext* avctx, const enum PixelFormat fmt, unsigned 
       // finally setup ffmpeg
       memset(&m_hwContext, 0, sizeof(AVVDPAUContext));
       m_hwContext.render2 = CDecoder::Render;
-      avctx->get_buffer2     = CDecoder::FFGetBuffer;
-      avctx->slice_flags=SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
+      avctx->get_buffer2 = CDecoder::FFGetBuffer;
+      avctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
       avctx->hwaccel_context = &m_hwContext;
+
+      mainctx->get_buffer2 = CDecoder::FFGetBuffer;
+      mainctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
+      mainctx->hwaccel_context = &m_hwContext;
 
       g_Windowing.Register(this);
       return true;

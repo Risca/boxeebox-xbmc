@@ -25,14 +25,11 @@
 #include "utils/SystemInfo.h"
 #include "threads/platform/win/Win32Exception.h"
 #include "shellapi.h"
-#include "dbghelp.h"
-#include "XBDateTime.h"
-#include "threads/Thread.h"
 #include "Application.h"
 #include "XbmcContext.h"
 #include "GUIInfoManager.h"
-#include "utils/StringUtils.h"
 #include "utils/CPUInfo.h"
+#include "utils/Environment.h"
 #include <mmdeviceapi.h>
 #include "win32/IMMNotificationClient.h"
 
@@ -56,6 +53,10 @@ INT WINAPI WinMain( HINSTANCE hInst, HINSTANCE, LPSTR commandLine, INT )
 {
   // set up some xbmc specific relationships
   XBMC::Context context;
+
+  // this fixes crash if OPENSSL_CONF is set to existed openssl.cfg
+  // need to set it as soon as possible
+  CEnvironment::unsetenv("OPENSSL_CONF");
 
   //this can't be set from CAdvancedSettings::Initialize() because it will overwrite
   //the loglevel set with the --debug flag

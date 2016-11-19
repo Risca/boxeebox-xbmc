@@ -30,21 +30,18 @@
 #include "ApplicationMessenger.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogSelect.h"
-#include "FileItem.h"
 #include "GUIInfoManager.h"
 #include "GUIUserMessages.h"
 #include "guilib/LocalizeStrings.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/GUIWindowManager.h"
 #include "settings/AdvancedSettings.h"
-#include "settings/lib/ISettingCallback.h"
 #include "settings/lib/Setting.h"
 #include "settings/Settings.h"
 #include "rendering/RenderSystem.h"
 #include "utils/log.h"
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
-#include "URL.h"
 #include "windowing/WindowingFactory.h"
 
 
@@ -69,6 +66,7 @@ static const struct StereoModeMap VideoModeToGuiModeMap[] =
   { "col_interleaved_lr",       RENDER_STEREO_MODE_OFF }, // unsupported
   { "anaglyph_cyan_red",        RENDER_STEREO_MODE_ANAGLYPH_RED_CYAN },
   { "anaglyph_green_magenta",   RENDER_STEREO_MODE_ANAGLYPH_GREEN_MAGENTA },
+  { "anaglyph_yellow_blue",     RENDER_STEREO_MODE_ANAGLYPH_YELLOW_BLUE },
   { "block_lr",                 RENDER_STEREO_MODE_OFF }, // unsupported
   { "block_rl",                 RENDER_STEREO_MODE_OFF }, // unsupported
   {}
@@ -87,6 +85,7 @@ static const struct StereoModeMap StringToGuiModeMap[] =
   { "interlaced",               RENDER_STEREO_MODE_INTERLACED }, // alias
   { "anaglyph_cyan_red",        RENDER_STEREO_MODE_ANAGLYPH_RED_CYAN },
   { "anaglyph_green_magenta",   RENDER_STEREO_MODE_ANAGLYPH_GREEN_MAGENTA },
+  { "anaglyph_yellow_blue",     RENDER_STEREO_MODE_ANAGLYPH_YELLOW_BLUE },
   { "hardware_based",           RENDER_STEREO_MODE_HARDWAREBASED },
   { "monoscopic",               RENDER_STEREO_MODE_MONO },
   {}
@@ -266,9 +265,28 @@ RENDER_STEREO_MODE CStereoscopicsManager::GetStereoModeOfPlayingVideo(void)
 
 const std::string &CStereoscopicsManager::GetLabelForStereoMode(const RENDER_STEREO_MODE &mode) const
 {
-  if (mode == RENDER_STEREO_MODE_AUTO)
-    return g_localizeStrings.Get(36532);
-  return g_localizeStrings.Get(36502 + mode);
+  int msgId;
+  switch(mode) {
+    case RENDER_STEREO_MODE_AUTO:
+	  msgId = 36532;
+	  break;
+    case RENDER_STEREO_MODE_ANAGLYPH_YELLOW_BLUE:
+	  msgId = 36510;
+	  break;
+    case RENDER_STEREO_MODE_INTERLACED:
+	  msgId = 36507;
+	  break;
+    case RENDER_STEREO_MODE_HARDWAREBASED:
+	  msgId = 36508;
+	  break;
+    case RENDER_STEREO_MODE_MONO:
+	  msgId = 36509;
+	  break;
+    default:
+	  msgId = 36502 + mode;
+  }
+
+  return g_localizeStrings.Get(msgId);
 }
 
 RENDER_STEREO_MODE CStereoscopicsManager::GetPreferredPlaybackMode(void)

@@ -34,14 +34,11 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/CharsetConverter.h"
 #include "utils/log.h"
-#include "DllPaths_win32.h"
-#include "FileSystem/File.h"
-#include "utils/URIUtils.h"
 #include "powermanagement\PowerManager.h"
 #include "utils/SystemInfo.h"
 #include "utils/Environment.h"
-#include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
+#include "win32/crts_caller.h"
 
 #include <cassert>
 
@@ -52,6 +49,8 @@
                      "special://xbmc/system/python/;" \
                      "special://xbmc/system/webserver/;" \
                      "special://xbmc/"
+
+#include <locale.h>
 
 extern HWND g_hWnd;
 
@@ -218,18 +217,15 @@ bool CWIN32Util::PowerManagement(PowerState State)
       return false;
   }
 
-  // process OnSleep() events. This is called in main thread.
-  g_powerManager.ProcessEvents();
-
   switch (State)
   {
   case POWERSTATE_HIBERNATE:
     CLog::Log(LOGINFO, "Asking Windows to hibernate...");
-    return SetSuspendState(true,true,false) == TRUE;
+    return SetSuspendState(true, true, false) == TRUE;
     break;
   case POWERSTATE_SUSPEND:
     CLog::Log(LOGINFO, "Asking Windows to suspend...");
-    return SetSuspendState(false,true,false) == TRUE;
+    return SetSuspendState(false, true, false) == TRUE;
     break;
   case POWERSTATE_SHUTDOWN:
     CLog::Log(LOGINFO, "Shutdown Windows...");
@@ -1517,7 +1513,8 @@ void CWIN32Util::CropSource(CRect& src, CRect& dst, CRect target)
 
 void CWinIdleTimer::StartZero()
 {
-  SetThreadExecutionState(ES_SYSTEM_REQUIRED|ES_DISPLAY_REQUIRED);
+  if (!g_application.IsDPMSActive())
+    SetThreadExecutionState(ES_SYSTEM_REQUIRED|ES_DISPLAY_REQUIRED);
   CStopWatch::StartZero();
 }
 
@@ -1606,3 +1603,10 @@ std::string CWIN32Util::WUSysMsg(DWORD dwError)
   else
     return StringUtils::Format("Unknown error (0x%X)", dwError);
 }
+
+bool CWIN32Util::SetThreadLocalLocale(bool enable /* = true */)
+{
+  const int param = enable ? _ENABLE_PER_THREAD_LOCALE : _DISABLE_PER_THREAD_LOCALE;
+  return CALL_IN_CRTS(_configthreadlocale, param) != -1;
+}
+

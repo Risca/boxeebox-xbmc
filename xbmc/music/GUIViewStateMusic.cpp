@@ -20,13 +20,11 @@
 
 #include "GUIViewStateMusic.h"
 #include "PlayListPlayer.h"
-#include "video/VideoDatabase.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSourceSettings.h"
 #include "settings/Settings.h"
 #include "FileItem.h"
 #include "guilib/WindowIDs.h"
-#include "Util.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/log.h"
 #include "view/ViewStateSettings.h"
@@ -57,7 +55,7 @@ std::string CGUIViewStateWindowMusic::GetLockType()
 
 std::string CGUIViewStateWindowMusic::GetExtensions()
 {
-  return g_advancedSettings.m_musicExtensions;
+  return g_advancedSettings.GetMusicExtensions();
 }
 
 VECSOURCES& CGUIViewStateWindowMusic::GetSources()
@@ -161,7 +159,7 @@ CGUIViewStateMusicDatabase::CGUIViewStateMusicDatabase(const CFileItemList& item
     break;
   case NODE_TYPE_YEAR:
     {
-      AddSortMethod(SortByLabel, 551, LABEL_MASKS("%F", "", "%Y", ""));  // Filename, empty | Year, empty
+      AddSortMethod(SortByLabel, 562, LABEL_MASKS("%F", "", "%Y", ""));  // Filename, empty | Year, empty
       SetSortMethod(SortByLabel);
 
       SetViewAsControl(DEFAULT_VIEW_LIST);
@@ -218,7 +216,7 @@ CGUIViewStateMusicDatabase::CGUIViewStateMusicDatabase(const CFileItemList& item
     break;
   case NODE_TYPE_ALBUM_RECENTLY_PLAYED:
     {
-      AddSortMethod(SortByNone, 551, LABEL_MASKS("%F", "", strAlbumLeft, strAlbumRight));  // Filename, empty | Userdefined, Userdefined
+      AddSortMethod(SortByNone, 568, LABEL_MASKS("%F", "", strAlbumLeft, strAlbumRight));  // Filename, empty | Userdefined, Userdefined
       SetSortMethod(SortByNone);
 
       SetViewAsControl(CViewStateSettings::Get().Get("musicnavalbums")->m_viewMode);
@@ -228,7 +226,7 @@ CGUIViewStateMusicDatabase::CGUIViewStateMusicDatabase(const CFileItemList& item
     break;
   case NODE_TYPE_ALBUM_RECENTLY_PLAYED_SONGS:
     {
-      AddSortMethod(SortByNone, 551, LABEL_MASKS(strTrackLeft, strTrackRight));  // Userdefined, Userdefined | empty, empty
+      AddSortMethod(SortByNone, 568, LABEL_MASKS(strTrackLeft, strTrackRight));  // Userdefined, Userdefined | empty, empty
       SetSortMethod(SortByNone);
 
       SetViewAsControl(CViewStateSettings::Get().Get("musicnavalbums")->m_viewMode);
@@ -347,6 +345,8 @@ CGUIViewStateMusicSmartPlaylist::CGUIViewStateMusicSmartPlaylist(const CFileItem
   if (CSettings::Get().GetBool("filelists.ignorethewhensorting"))
     sortAttribute = SortAttributeIgnoreArticle;
 
+  const CViewState *viewState = CViewStateSettings::Get().Get("musicnavsongs");
+
   if (items.GetContent() == "songs" || items.GetContent() == "mixed") 
   {
     std::string strTrackLeft=CSettings::Get().GetString("musicfiles.trackformat");
@@ -359,7 +359,14 @@ CGUIViewStateMusicSmartPlaylist::CGUIViewStateMusicSmartPlaylist(const CFileItem
     AddSortMethod(SortByLabel, sortAttribute, 551, LABEL_MASKS(strTrackLeft, strTrackRight));
     AddSortMethod(SortByTime, 180, LABEL_MASKS("%T - %A", "%D"));  // Titel, Artist, Duration| empty, empty
     AddSortMethod(SortByRating, 563, LABEL_MASKS("%T - %A", "%R"));  // Titel, Artist, Rating| empty, empty
-    AddPlaylistOrder(items, LABEL_MASKS(strTrackLeft, strTrackRight));
+
+    if (items.IsSmartPlayList() || items.IsLibraryFolder())
+      AddPlaylistOrder(items, LABEL_MASKS(strTrackLeft, strTrackRight));
+    else
+    {
+      SetSortMethod(viewState->m_sortDescription);
+      SetSortOrder(viewState->m_sortDescription.sortOrder);
+    }
 
     SetViewAsControl(CViewStateSettings::Get().Get("musicnavsongs")->m_viewMode);
   } 
@@ -379,7 +386,13 @@ CGUIViewStateMusicSmartPlaylist::CGUIViewStateMusicSmartPlaylist(const CFileItem
     // year
     AddSortMethod(SortByYear, 562, LABEL_MASKS("%F", "", strAlbumLeft, strAlbumRight));
 
-    AddPlaylistOrder(items, LABEL_MASKS("%F", "", strAlbumLeft, strAlbumRight));
+    if (items.IsSmartPlayList() || items.IsLibraryFolder())
+      AddPlaylistOrder(items, LABEL_MASKS("%F", "", strAlbumLeft, strAlbumRight));
+    else
+    {
+      SetSortMethod(viewState->m_sortDescription);
+      SetSortOrder(viewState->m_sortDescription.sortOrder);
+    }
 
     SetViewAsControl(CViewStateSettings::Get().Get("musicnavalbums")->m_viewMode);
   } 
@@ -499,48 +512,21 @@ VECSOURCES& CGUIViewStateWindowMusicNav::GetSources()
 {
   //  Setup shares we want to have
   m_sources.clear();
-  //  Musicdb shares
   CFileItemList items;
-  CDirectory::GetDirectory("musicdb://", items, "");
+
+  CDirectory::GetDirectory("library://music/", items, "");
   for (int i=0; i<items.Size(); ++i)
   {
     CFileItemPtr item=items[i];
     CMediaSource share;
-    share.strName=item->GetLabel();
+    share.strName = item->GetLabel();
     share.strPath = item->GetPath();
     share.m_strThumbnailImage = item->GetIconImage();
     share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
     m_sources.push_back(share);
   }
 
-  //  Playlists share
-  CMediaSource share;
-  share.strName=g_localizeStrings.Get(136); // Playlists
-  share.strPath = "special://musicplaylists/";
-  share.m_strThumbnailImage = CUtil::GetDefaultFolderThumb("DefaultMusicPlaylists.png");
-  share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
-  m_sources.push_back(share);
-
   AddOnlineShares();
-
-  // Search share
-  share.strName=g_localizeStrings.Get(137); // Search
-  share.strPath = "musicsearch://";
-  share.m_strThumbnailImage = CUtil::GetDefaultFolderThumb("DefaultMusicSearch.png");
-  share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
-  m_sources.push_back(share);
-
-  // music video share
-  CVideoDatabase database;
-  database.Open();
-  if (database.HasContent(VIDEODB_CONTENT_MUSICVIDEOS))
-  {
-    share.strName = g_localizeStrings.Get(20389);
-    share.strPath = "videodb://musicvideos/";
-    share.m_strThumbnailImage = CUtil::GetDefaultFolderThumb("DefaultMusicVideos.png");
-    share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
-    m_sources.push_back(share);
-  }
 
   return CGUIViewStateWindowMusic::GetSources();
 }

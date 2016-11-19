@@ -20,7 +20,6 @@
  *
 */
 
-#include "lib/libexif/libexif.h"
 #include "windowing/WindowingFactory.h"
 #include "settings/AdvancedSettings.h"
 #include "filesystem/File.h"
@@ -525,7 +524,7 @@ bool CJpegIO::CreateThumbnailFromSurface(unsigned char* buffer, unsigned int wid
     delete [] rgbbuf;
 
   XFILE::CFile file;
-  const bool ret = file.OpenForWrite(destFile, true) && file.Write(result, outBufSize) == outBufSize;
+  const bool ret = file.OpenForWrite(destFile, true) && file.Write(result, outBufSize) == static_cast<ssize_t>(outBufSize);
   free(result);
 
   return ret;

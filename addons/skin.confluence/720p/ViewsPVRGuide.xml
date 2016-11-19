@@ -31,7 +31,7 @@
 				<onright>101</onright>
 				<onup>10</onup>
 				<ondown>10</ondown>
-				<onback>101</onback> 
+				<onback>101</onback>
 				<rulerlayout height="35" width="40">
 					<control type="label" id="2">
 						<left>0</left>
@@ -43,6 +43,19 @@
 						<selectedcolor>selected</selectedcolor>
 						<align>center</align>
 						<label>$INFO[ListItem.Label]</label>
+						<visible>!ListItem.Property(DateLabel)</visible>
+					</control>
+					<control type="label" id="2">
+						<left>0</left>
+						<top>0</top>
+						<width>34</width>
+						<height>29</height>
+						<font>font12</font>
+						<aligny>center</aligny>
+						<selectedcolor>selected</selectedcolor>
+						<align>left</align>
+						<label>$INFO[ListItem.Label]</label>
+						<visible>ListItem.Property(DateLabel)</visible>
 					</control>
 				</rulerlayout>
 				<channellayout height="48" width="280">
@@ -79,7 +92,7 @@
 						<top>0</top>
 						<width>160</width>
 						<height>48</height>
-						<font>special12</font>
+						<font>font13</font>
 						<aligny>center</aligny>
 						<selectedcolor>selected</selectedcolor>
 						<align>left</align>
@@ -130,7 +143,7 @@
 						<top>0</top>
 						<width>160</width>
 						<height>48</height>
-						<font>special12</font>
+						<font>font13</font>
 						<aligny>center</aligny>
 						<selectedcolor>selected</selectedcolor>
 						<align>left</align>
@@ -252,7 +265,7 @@
 					<top>0</top>
 					<width>840</width>
 					<height>20</height>
-					<label>[B]$INFO[ListItem.Label][/B]</label>
+					<label>[B]$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)][/B]</label>
 					<font>font13</font>
 					<textcolor>white</textcolor>
 				</control>
@@ -261,7 +274,7 @@
 					<top>25</top>
 					<width>840</width>
 					<height>20</height>
-					<label>$INFO[ListItem.StartTime]$INFO[ListItem.EndTime, - ]$INFO[ListItem.Genre, • ]</label>
+					<label>$INFO[ListItem.StartTime]$INFO[ListItem.EndTime, - ]$INFO[ListItem.Season, • $LOCALIZE[20373] ]$INFO[ListItem.Episode, • $LOCALIZE[20359] ]$INFO[ListItem.Genre, • ]</label>
 					<font>font12</font>
 					<textcolor>grey</textcolor>
 				</control>
@@ -280,7 +293,6 @@
 			</control>
 		</control>
 	</include>
-	
 	<!-- ID: 11 -->
 	<include name="PVRGuideViewNow">
 		<control type="group">
@@ -429,7 +441,7 @@
 							<aligny>center</aligny>
 							<textcolor>grey2</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="image">
 							<left>970</left>
@@ -568,7 +580,7 @@
 							<aligny>center</aligny>
 							<textcolor>white</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="textbox">
 							<description>Plot Value for TVShow</description>
@@ -659,7 +671,6 @@
 			</control>
 		</control>
 	</include>
-	
 	<!-- ID: 12 -->
 	<include name="PVRGuideViewNext">
 		<control type="group">
@@ -808,7 +819,7 @@
 							<aligny>center</aligny>
 							<textcolor>grey2</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="image">
 							<left>970</left>
@@ -947,7 +958,7 @@
 							<aligny>center</aligny>
 							<textcolor>white</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="textbox">
 							<description>Plot Value for TVShow</description>
@@ -1038,7 +1049,6 @@
 			</control>
 		</control>
 	</include>
-	
 	<!-- ID: 13 -->
 	<include name="PVRGuideViewChannel">
 		<control type="group">
@@ -1154,7 +1164,7 @@
 							<aligny>center</aligny>
 							<textcolor>grey2</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="image">
 							<left>970</left>
@@ -1273,7 +1283,7 @@
 							<aligny>center</aligny>
 							<textcolor>white</textcolor>
 							<selectedcolor>selected</selectedcolor>
-							<info>ListItem.Label</info>
+							<label>$INFO[ListItem.Label]$INFO[ListItem.EpisodeName, (,)]</label>
 						</control>
 						<control type="textbox">
 							<description>Plot Value for TVShow</description>

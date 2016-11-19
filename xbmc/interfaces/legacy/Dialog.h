@@ -22,10 +22,8 @@
 
 #include <vector>
 
-#include "WindowException.h"
 #include "AddonClass.h"
 #include "AddonString.h"
-#include "ApplicationMessenger.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogExtendedProgressBar.h"
 #include "Alternative.h"
@@ -58,7 +56,7 @@ namespace XBMCAddon
        * yesno(heading, line1[, line2, line3]) -- Show a dialog 'YES/NO'.\n
        * \n
        * heading        : string or unicode - dialog heading.\n
-       * line1          : string or unicode - line #1 text.\n
+       * line1          : string or unicode - line #1 multi-line text.\n
        * line2          : [opt] string or unicode - line #2 text.\n
        * line3          : [opt] string or unicode - line #3 text.\n
        * nolabel        : [opt] label to put on the no button.\n
@@ -66,18 +64,18 @@ namespace XBMCAddon
        * autoclose      : [opt] integer - milliseconds to autoclose dialog. (default=do not autoclose)\n
        * \n
        * *Note, Returns True if 'Yes' was pressed, else False.\n
-       * *Note, Optionally line1 can be sent as multi-line text. In this case line2 and line3 must be omitted.\n
+       * *Note, it is preferred to only use line1 as it is actually a multi-line text. In this case line2 and line3 must be omitted.\n
        * \n
        * example:\n
        *   - dialog = xbmcgui.Dialog()\n
-       *   - ret = dialog.yesno('XBMC', 'Do you want to exit this script?')n\n
+       *   - ret = dialog.yesno('Kodi', 'Do you want to exit this script?')n\n
        */
       bool yesno(const String& heading, const String& line1, 
                  const String& line2 = emptyString,
                  const String& line3 = emptyString,
                  const String& nolabel = emptyString,
                  const String& yeslabel = emptyString,
-                 int autoclose = 0) throw (WindowException);
+                 int autoclose = 0);
 
       /**
        * select(heading, list) -- Show a select dialog.\n
@@ -92,18 +90,18 @@ namespace XBMCAddon
        *   - dialog = xbmcgui.Dialog()\n
        *   - ret = dialog.select('Choose a playlist', ['Playlist #1', 'Playlist #2, 'Playlist #3'])n\n
        */
-      int select(const String& heading, const std::vector<String>& list, int autoclose=0) throw (WindowException);
+      int select(const String& heading, const std::vector<String>& list, int autoclose=0);
 
       /**
        * ok(heading, line1[, line2, line3]) -- Show a dialog 'OK'.\n
        * \n
        * heading        : string or unicode - dialog heading.\n
-       * line1          : string or unicode - line #1 text.\n
+       * line1          : string or unicode - line #1 multi-line text.\n
        * line2          : [opt] string or unicode - line #2 text.\n
        * line3          : [opt] string or unicode - line #3 text.\n
        * \n
        * *Note, Returns True if 'Ok' was pressed, else False.\n
-       * *Note: Optionally line1 can be sent as multi-line text. In this case line2 and line3 must be omitted.\n
+       * *Note, it is preferred to only use line1 as it is actually a multi-line text. In this case line2 and line3 must be omitted.\n
        * \n
        * example:\n
        *   - dialog = xbmcgui.Dialog()\n
@@ -111,7 +109,7 @@ namespace XBMCAddon
        */
       bool ok(const String& heading, const String& line1, 
               const String& line2 = emptyString,
-              const String& line3 = emptyString) throw (WindowException);
+              const String& line3 = emptyString);
 
       /**
        * browse(type, heading, shares[, mask, useThumbs, treatAsFolder, default, enableMultiple]) -- Show a 'Browse' dialog.\n
@@ -147,7 +145,7 @@ namespace XBMCAddon
       Alternative<String, std::vector<String> > browse(int type, const String& heading, const String& s_shares,
                           const String& mask = emptyString, bool useThumbs = false, 
                           bool treatAsFolder = false, const String& defaultt = emptyString,
-                          bool enableMultiple = false) throw (WindowException);
+                          bool enableMultiple = false);
  
       /**
        * browse(type, heading, shares[, mask, useThumbs, treatAsFolder, default]) -- Show a 'Browse' dialog.\n
@@ -177,7 +175,7 @@ namespace XBMCAddon
       String browseSingle(int type, const String& heading, const String& shares,
                           const String& mask = emptyString, bool useThumbs = false, 
                           bool treatAsFolder = false, 
-                          const String& defaultt = emptyString ) throw (WindowException);
+                          const String& defaultt = emptyString );
 
       /**
        * browse(type, heading, shares[, mask, useThumbs, treatAsFolder, default]) -- Show a 'Browse' dialog.\n
@@ -205,7 +203,7 @@ namespace XBMCAddon
       std::vector<String> browseMultiple(int type, const String& heading, const String& shares,
                                          const String& mask = emptyString, bool useThumbs = false, 
                                          bool treatAsFolder = false, 
-                                         const String& defaultt = emptyString ) throw (WindowException);
+                                         const String& defaultt = emptyString );
 
 
       /**
@@ -284,7 +282,7 @@ namespace XBMCAddon
                    const String& defaultt = emptyString,
                    int type = INPUT_ALPHANUM,
                    int option = 0,
-                   int autoclose = 0) throw (WindowException);
+                   int autoclose = 0);
     };
 
     /**
@@ -308,11 +306,11 @@ namespace XBMCAddon
        * create(heading[, line1, line2, line3]) -- Create and show a progress dialog.\n
        * \n
        * heading        : string or unicode - dialog heading.\n
-       * line1          : [opt] string or unicode - line #1 text.\n
+       * line1          : [opt] string or unicode - line #1 multi-line text.\n
        * line2          : [opt] string or unicode - line #2 text.\n
        * line3          : [opt] string or unicode - line #3 text.\n
        * \n
-       * *Note, Optionally line1 can be sent as multi-line text. In this case line2 and line3 must be omitted.\n
+       * *Note, it is preferred to only use line1 as it is actually a multi-line text. In this case line2 and line3 must be omitted.\n
        * *Note, Use update() to update lines and progressbar.\n
        * \n
        * example:
@@ -321,17 +319,17 @@ namespace XBMCAddon
        */
       void create(const String& heading, const String& line1 = emptyString, 
                   const String& line2 = emptyString,
-                  const String& line3 = emptyString) throw (WindowException);
+                  const String& line3 = emptyString);
 
       /**
        * update(percent[, line1, line2, line3]) -- Updates the progress dialog.\n
        * \n
        * percent        : integer - percent complete. (0:100)\n
-       * line1          : [opt] string or unicode - line #1 text.\n
+       * line1          : [opt] string or unicode - line #1 multi-line text.\n
        * line2          : [opt] string or unicode - line #2 text.\n
        * line3          : [opt] string or unicode - line #3 text.\n
        * \n
-       * *Note, Optionally line1 can be sent as multi-line text. In this case line2 and line3 must be omitted.\n
+       * *Note, it is preferred to only use line1 as it is actually a multi-line text. In this case line2 and line3 must be omitted.\n
        * *Note, If percent == 0, the progressbar will be hidden.\n
        * \n
        * example:
@@ -339,7 +337,7 @@ namespace XBMCAddon
        */
       void update(int percent, const String& line1 = emptyString, 
                   const String& line2 = emptyString,
-                  const String& line3 = emptyString) throw (WindowException);
+                  const String& line3 = emptyString);
 
       /**
        * close() -- Close the progress dialog.\n
@@ -389,7 +387,7 @@ namespace XBMCAddon
        * - pDialog = xbmcgui.DialogProgressBG()
        * - pDialog.create('Movie Trailers', 'Downloading Monsters Inc. ...')
        */
-      void create(const String& heading, const String& message = emptyString) throw (WindowException);
+      void create(const String& heading, const String& message = emptyString);
 
       /**
        * update([percent, heading, message]) -- Updates the background progress dialog.
@@ -403,7 +401,7 @@ namespace XBMCAddon
        * example:
        * - pDialog.update(25, message='Downloading Finding Nemo ...')
        */
-      void update(int percent = 0, const String& heading = emptyString, const String& message = emptyString) throw (WindowException);
+      void update(int percent = 0, const String& heading = emptyString, const String& message = emptyString);
 
       /**
        * close() -- Close the background progress dialog

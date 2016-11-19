@@ -20,7 +20,6 @@
 
 #include "threads/SystemClock.h"
 #include "PlayListPlayer.h"
-#include "playlists/PlayListFactory.h"
 #include "Application.h"
 #include "PartyModeManager.h"
 #include "settings/AdvancedSettings.h"
@@ -29,13 +28,12 @@
 #include "dialogs/GUIDialogOK.h"
 #include "playlists/PlayList.h"
 #include "utils/log.h"
-#include "utils/TimeUtils.h"
 #include "utils/StringUtils.h"
 #include "music/tags/MusicInfoTag.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "guilib/LocalizeStrings.h"
 #include "interfaces/AnnouncementManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "URL.h"
 
 using namespace PLAYLIST;
@@ -301,7 +299,7 @@ bool CPlayListPlayer::Play(int iSong, bool bAutoPlay /* = false */, bool bPlayPr
       CLog::Log(LOGDEBUG,"Playlist Player: one or more items failed to play... aborting playback");
 
       // open error dialog
-      CGUIDialogOK::ShowAndGetInput(16026, 16027, 16029, 0);
+      CGUIDialogOK::ShowAndGetInput(16026, 16027);
 
       CGUIMessage msg(GUI_MSG_PLAYLISTPLAYER_STOPPED, 0, 0, m_iCurrentPlayList, m_iCurrentSong);
       g_windowManager.SendThreadMessage(msg);

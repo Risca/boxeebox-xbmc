@@ -49,7 +49,7 @@ public:
   static bool HasResumeItemOffset(const CFileItem *item);
 
   void AddToDatabase(int iItem);
-  virtual void OnInfo(CFileItem* pItem, const ADDON::ScraperPtr& scraper);
+  virtual void OnInfo(CFileItem* pItem, ADDON::ScraperPtr& scraper);
 
 
   /*! \brief Show the resume menu for this item (if it has a resume bookmark)
@@ -87,8 +87,6 @@ public:
 
 protected:
   void OnScan(const std::string& strPath, bool scanAll = false);
-  virtual void OnInitWindow();
-  virtual void UpdateButtons();
   virtual bool Update(const std::string &strDirectory, bool updateFilterPath = true);
   virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
   virtual void OnItemLoaded(CFileItem* pItem) {};
@@ -134,7 +132,7 @@ protected:
   void OnSearchItemFound(const CFileItem* pSelItem);
   int GetScraperForItem(CFileItem *item, ADDON::ScraperPtr &info, VIDEO::SScanSettings& settings);
 
-  static bool OnUnAssignContent(const std::string &path, int label1, int label2, int label3);
+  static bool OnUnAssignContent(const std::string &path, int header, int text);
 
   static bool StackingAvailable(const CFileItemList &items);
 

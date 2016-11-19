@@ -23,18 +23,15 @@
 #include "MediaSettings.h"
 #include "Application.h"
 #include "PlayListPlayer.h"
-#include "Util.h"
 #include "dialogs/GUIDialogContextMenu.h"
 #include "dialogs/GUIDialogFileBrowser.h"
 #include "dialogs/GUIDialogYesNo.h"
-#include "guilib/WindowIDs.h"
 #include "interfaces/Builtins.h"
 #include "music/MusicDatabase.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/lib/Setting.h"
 #include "storage/MediaManager.h"
 #include "threads/SingleLock.h"
-#include "utils/log.h"
 #include "utils/URIUtils.h"
 #include "utils/XBMCTinyXML.h"
 #include "utils/XMLUtils.h"
@@ -44,6 +41,7 @@ using namespace std;
 
 CMediaSettings::CMediaSettings()
 {
+  m_watchedModes["files"] = WatchedModeAll;
   m_watchedModes["movies"] = WatchedModeAll;
   m_watchedModes["tvshows"] = WatchedModeAll;
   m_watchedModes["musicvideos"] = WatchedModeAll;
@@ -312,7 +310,7 @@ void CMediaSettings::OnSettingAction(const CSetting *setting)
   }
   else if (settingId == "musiclibrary.cleanup")
   {
-    if (CGUIDialogYesNo::ShowAndGetInput(313, 333, 0, 0))
+    if (CGUIDialogYesNo::ShowAndGetInput(313, 333))
       g_application.StartMusicCleanup(true);
   }
   else if (settingId == "musiclibrary.export")
@@ -332,7 +330,7 @@ void CMediaSettings::OnSettingAction(const CSetting *setting)
   }
   else if (settingId == "videolibrary.cleanup")
   {
-    if (CGUIDialogYesNo::ShowAndGetInput(313, 333, 0, 0))
+    if (CGUIDialogYesNo::ShowAndGetInput(313, 333))
       g_application.StartVideoCleanup(true);
   }
   else if (settingId == "videolibrary.export")

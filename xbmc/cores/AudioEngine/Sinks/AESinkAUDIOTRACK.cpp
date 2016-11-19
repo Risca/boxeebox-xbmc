@@ -191,7 +191,6 @@ CAESinkAUDIOTRACK::CAESinkAUDIOTRACK()
   m_min_frames = 0;
   m_sink_frameSize = 0;
   m_audiotrackbuffer_sec = 0.0;
-  m_volume = 1.0;
   m_at_jni = NULL;
   m_frames_written = 0;
 }
@@ -201,10 +200,17 @@ CAESinkAUDIOTRACK::~CAESinkAUDIOTRACK()
   Deinitialize();
 }
 
+bool CAESinkAUDIOTRACK::IsSupported(int sampleRateInHz, int channelConfig, int encoding)
+{
+  int ret = CJNIAudioTrack::getMinBufferSize( sampleRateInHz, channelConfig, encoding);
+  return (ret > 0);
+}
+
 bool CAESinkAUDIOTRACK::Initialize(AEAudioFormat &format, std::string &device)
 {
   m_lastFormat  = format;
   m_format      = format;
+  m_volume      = -1;
 
   if (AE_IS_RAW(m_format.m_dataFormat))
     m_passthrough = true;
@@ -264,18 +270,22 @@ bool CAESinkAUDIOTRACK::Initialize(AEAudioFormat &format, std::string &device)
   m_format.m_frameSamples   = m_format.m_frames * m_format.m_channelLayout.Count();
   format                    = m_format;
 
-  JNIEnv* jenv = xbmc_jnienv();
-  // Set the initial volume
-  float volume = 1.0;
-  if (!m_passthrough)
-    volume = m_volume;
-  CXBMCApp::SetSystemVolume(jenv, volume);
+  // Force volume to 100% for passthrough
+  if (m_passthrough)
+  {
+    m_volume = CXBMCApp::GetSystemVolume();
+    CXBMCApp::SetSystemVolume(1.0);
+  }
 
   return true;
 }
 
 void CAESinkAUDIOTRACK::Deinitialize()
 {
+  // Restore volume
+  if (m_volume != -1)
+    CXBMCApp::SetSystemVolume(m_volume);
+
   if (!m_at_jni)
     return;
 
@@ -309,10 +319,6 @@ void CAESinkAUDIOTRACK::GetDelay(AEDelayStatus& status)
 
 double CAESinkAUDIOTRACK::GetLatency()
 {
-#if defined(HAS_LIBAMCODEC)
-  if (aml_present())
-    return 0.250;
-#endif
   return 0.0;
 }
 
@@ -366,14 +372,14 @@ bool CAESinkAUDIOTRACK::HasVolume()
 
 void  CAESinkAUDIOTRACK::SetVolume(float scale)
 {
+  // Ignore in passthrough
+  if (m_passthrough)
+    return;
+
   if (!m_at_jni)
     return;
 
-  m_volume = scale;
-  if (!m_passthrough)
-  {
-    CXBMCApp::SetSystemVolume(xbmc_jnienv(), m_volume);
-  }
+  CXBMCApp::SetSystemVolume(scale);
 }
 
 void CAESinkAUDIOTRACK::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
@@ -394,7 +400,16 @@ void CAESinkAUDIOTRACK::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
 #else
   m_info.m_channels = KnownChannels;
 #endif
-  m_info.m_sampleRates.push_back(CJNIAudioTrack::getNativeOutputSampleRate(CJNIAudioManager::STREAM_MUSIC));
+  int test_sample[] = { 44100, 48000, 96000, 192000 };
+  int test_sample_sz = sizeof(test_sample) / sizeof(int);
+  for (int i=0; i<test_sample_sz; ++i)
+  {
+    if (IsSupported(test_sample[i], CJNIAudioFormat::CHANNEL_OUT_STEREO, CJNIAudioFormat::ENCODING_PCM_16BIT))
+    {
+      m_info.m_sampleRates.push_back(test_sample[i]);
+      CLog::Log(LOGDEBUG, "AESinkAUDIOTRACK - %d supported", test_sample[i]);
+    }
+  }
   m_info.m_dataFormats.push_back(AE_FMT_S16LE);
   m_info.m_dataFormats.push_back(AE_FMT_AC3);
   m_info.m_dataFormats.push_back(AE_FMT_DTS);

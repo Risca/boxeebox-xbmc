@@ -24,7 +24,6 @@
 #include "music/tags/MusicInfoTag.h"
 #include "music/tags/MusicInfoTagLoaderFactory.h"
 #include "music/infoscanner/MusicInfoScanner.h"
-#include "music/Artist.h"
 #include "video/VideoThumbLoader.h"
 
 using namespace std;
@@ -239,7 +238,8 @@ bool CMusicThumbLoader::FillLibraryArt(CFileItem &item)
 
 bool CMusicThumbLoader::GetEmbeddedThumb(const std::string &path, EmbeddedArt &art)
 {
-  unique_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(path));
+  CFileItem item(path, false);
+  unique_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(item));
   CMusicInfoTag tag;
   if (NULL != pLoader.get())
     pLoader->Load(path, tag, &art);

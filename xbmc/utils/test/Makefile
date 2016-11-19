@@ -11,13 +11,10 @@ SRCS=	\
 	TestCryptThreading.cpp \
 	TestDatabaseUtils.cpp \
 	TestEndianSwap.cpp \
-	Testfastmemcpy.cpp \
-	Testfft.cpp \
 	TestFileOperationJob.cpp \
 	TestFileUtils.cpp \
 	Testfstrcmp.cpp \
 	TestGlobalsHandling.cpp \
-	TestHTMLTable.cpp \
 	TestHTMLUtil.cpp \
 	TestHttpHeader.cpp \
 	TestHttpParser.cpp \
@@ -28,6 +25,7 @@ SRCS=	\
 	TestJSONVariantWriter.cpp \
 	TestLabelFormatter.cpp \
 	TestLangCodeExpander.cpp \
+	TestLocale.cpp \
 	Testlog.cpp \
 	TestMathUtils.cpp \
 	Testmd5.cpp \
@@ -35,6 +33,7 @@ SRCS=	\
 	TestPerformanceSample.cpp \
 	TestPOUtils.cpp \
 	TestRegExp.cpp \
+        Testrfft.cpp \
 	TestRingBuffer.cpp \
 	TestScraperParser.cpp \
 	TestScraperUrl.cpp \

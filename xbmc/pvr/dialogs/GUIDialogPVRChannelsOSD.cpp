@@ -23,26 +23,24 @@
 #include "ApplicationMessenger.h"
 #include "FileItem.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "guilib/LocalizeStrings.h"
 #include "dialogs/GUIDialogKaiToast.h"
-#include "dialogs/GUIDialogOK.h"
 #include "GUIDialogPVRGuideInfo.h"
 #include "view/ViewState.h"
 #include "settings/Settings.h"
 #include "GUIInfoManager.h"
-#include "cores/IPlayer.h"
 #include "utils/StringUtils.h"
 
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
-#include "epg/Epg.h"
-#include "pvr/timers/PVRTimerInfoTag.h"
-#include "pvr/channels/PVRChannelGroupsContainer.h"
 #include "pvr/windows/GUIWindowPVRBase.h"
+#include "epg/EpgContainer.h"
 
 using namespace PVR;
 using namespace EPG;
+
+#define MAX_INVALIDATION_FREQUENCY 2000 // limit to one invalidation per X milliseconds
 
 #define CONTROL_LIST                  11
 
@@ -59,6 +57,8 @@ CGUIDialogPVRChannelsOSD::~CGUIDialogPVRChannelsOSD()
 
   if (IsObserving(g_infoManager))
     g_infoManager.UnregisterObserver(this);
+  if (IsObserving(g_EpgContainer))
+    g_EpgContainer.UnregisterObserver(this);
 }
 
 bool CGUIDialogPVRChannelsOSD::OnMessage(CGUIMessage& message)
@@ -86,6 +86,22 @@ bool CGUIDialogPVRChannelsOSD::OnMessage(CGUIMessage& message)
           ShowInfo(iItem);
           return true;
         }
+      }
+    }
+    break;
+  case GUI_MSG_REFRESH_LIST:
+    {
+      switch(message.GetParam1())
+      {
+        case ObservableMessageCurrentItem:
+          m_viewControl.SetItems(*m_vecItems);
+          return true;
+        case ObservableMessageEpg:
+        case ObservableMessageEpgContainer:
+        case ObservableMessageEpgActiveItem:
+          if (IsActive())
+            SetInvalid();
+          return true;
       }
     }
     break;
@@ -157,8 +173,8 @@ bool CGUIDialogPVRChannelsOSD::OnAction(const CAction &action)
 
 CPVRChannelGroupPtr CGUIDialogPVRChannelsOSD::GetPlayingGroup()
 {
-  CPVRChannelPtr channel;
-  if (g_PVRManager.GetCurrentChannel(channel))
+  CPVRChannelPtr channel(g_PVRManager.GetCurrentChannel());
+  if (channel)
     return g_PVRManager.GetPlayingGroup(channel->IsRadio());
   else
     return CPVRChannelGroupPtr();
@@ -171,14 +187,16 @@ void CGUIDialogPVRChannelsOSD::Update()
 
   if (!IsObserving(g_infoManager))
     g_infoManager.RegisterObserver(this);
+  if (!IsObserving(g_EpgContainer))
+    g_EpgContainer.RegisterObserver(this);
 
   m_viewControl.SetCurrentView(DEFAULT_VIEW_LIST);
 
   // empty the list ready for population
   Clear();
 
-  CPVRChannelPtr channel;
-  if (g_PVRManager.GetCurrentChannel(channel))
+  CPVRChannelPtr channel(g_PVRManager.GetCurrentChannel());
+  if (channel)
   {
     CPVRChannelGroupPtr group = g_PVRManager.GetPlayingGroup(channel->IsRadio());
     if (group)
@@ -196,6 +214,18 @@ void CGUIDialogPVRChannelsOSD::Update()
   }
 
   g_graphicsContext.Unlock();
+}
+
+void CGUIDialogPVRChannelsOSD::SetInvalid()
+{
+  if (m_refreshTimeout.IsTimePast())
+  {
+    VECFILEITEMS items = m_vecItems->GetList();
+    for (VECFILEITEMS::iterator it = items.begin(); it != items.end(); ++it)
+      (*it)->SetInvalid();
+    CGUIDialog::SetInvalid();
+    m_refreshTimeout.Set(MAX_INVALIDATION_FREQUENCY);
+  }
 }
 
 void CGUIDialogPVRChannelsOSD::SaveControlStates()
@@ -254,9 +284,9 @@ void CGUIDialogPVRChannelsOSD::GotoChannel(int item)
 
   if (g_PVRManager.IsPlaying() && pItem->HasPVRChannelInfoTag() && g_application.m_pPlayer->HasPlayer())
   {
-    CPVRChannel *channel = pItem->GetPVRChannelInfoTag();
-    if (!g_PVRManager.CheckParentalLock(*channel) ||
-        !g_application.m_pPlayer->SwitchChannel(*channel))
+    CPVRChannelPtr channel = pItem->GetPVRChannelInfoTag();
+    if (!g_PVRManager.CheckParentalLock(channel) ||
+        !g_application.m_pPlayer->SwitchChannel(channel))
     {
       std::string msg = StringUtils::Format(g_localizeStrings.Get(19035).c_str(), channel->ChannelName().c_str()); // CHANNELNAME could not be played. Check the log for details.
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error,
@@ -281,8 +311,8 @@ void CGUIDialogPVRChannelsOSD::ShowInfo(int item)
   CFileItemPtr pItem = m_vecItems->Get(item);
   if (pItem && pItem->IsPVRChannel())
   {
-    CPVRChannel *channel = pItem->GetPVRChannelInfoTag();
-    if (!g_PVRManager.CheckParentalLock(*channel))
+    CPVRChannelPtr channel(pItem->GetPVRChannelInfoTag());
+    if (!g_PVRManager.CheckParentalLock(channel))
       return;
 
     /* Get the current running show on this channel from the EPG storage */
@@ -329,12 +359,8 @@ CGUIControl *CGUIDialogPVRChannelsOSD::GetFirstFocusableControl(int id)
 
 void CGUIDialogPVRChannelsOSD::Notify(const Observable &obs, const ObservableMessage msg)
 {
-  if (msg == ObservableMessageCurrentItem)
-  {
-    g_graphicsContext.Lock();
-    m_viewControl.SetItems(*m_vecItems);
-    g_graphicsContext.Unlock();
-  }
+  CGUIMessage m(GUI_MSG_REFRESH_LIST, GetID(), 0, msg);
+  CApplicationMessenger::Get().SendGUIMessage(m);
 }
 
 void CGUIDialogPVRChannelsOSD::SaveSelectedItemPath(int iGroupID)

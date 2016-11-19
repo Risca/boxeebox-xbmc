@@ -26,11 +26,11 @@
 #include "guilib/Geometry.h"
 #include "guilib/Resolution.h"
 #include "threads/SharedSection.h"
-#include "threads/Thread.h"
 #include "settings/VideoSettings.h"
 #include "OverlayRenderer.h"
 #include <deque>
 #include "PlatformDefs.h"
+#include "threads/Event.h"
 
 class CRenderCapture;
 
@@ -55,7 +55,7 @@ public:
   ~CXBMCRenderManager();
 
   // Functions called from the GUI
-  void GetVideoRect(CRect &source, CRect &dest);
+  void GetVideoRect(CRect &source, CRect &dest, CRect &view);
   float GetAspectRatio();
   void Update();
   void FrameMove();
@@ -114,6 +114,10 @@ public:
 
   void AddOverlay(CDVDOverlay* o, double pts)
   {
+    { CSingleLock lock(m_presentlock);
+      if (m_free.empty())
+        return;
+    }
     CSharedLock lock(m_sharedSection);
     m_overlays.AddOverlay(o, pts, m_free.front());
   }
@@ -162,10 +166,8 @@ public:
   CLinuxRenderer      *m_pRenderer;
 #endif
 
-  unsigned int GetOptimalBufferSize();
-
-  // Supported pixel formats, can be called before configure
-  std::vector<ERenderFormat> SupportedFormats();
+  // Get renderer info, can be called before configure
+  CRenderInfo GetRenderInfo();
 
   void Recover(); // called after resolution switch if something special is needed
 
@@ -188,7 +190,7 @@ public:
    * Can be called by player for lateness detection. This is done best by
    * looking at the end of the queue.
    */
-  bool GetStats(double &sleeptime, double &pts, int &bufferLevel);
+  bool GetStats(double &sleeptime, double &pts, int &queued, int &discard);
 
   /**
    * Video player call this on flush in oder to discard any queued frames
@@ -210,6 +212,7 @@ protected:
   bool m_bIsStarted;
   bool m_bReconfigured;
   bool m_bRenderGUI;
+  int m_waitForBufferCount;
 
   int m_rendermethod;
 
@@ -248,32 +251,31 @@ protected:
   std::deque<int> m_queued;
   std::deque<int> m_discard;
 
-  ERenderFormat   m_format;
+  ERenderFormat m_format;
 
-  double     m_sleeptime;
-  double     m_presentpts;
-  double     m_presentcorr;
-  double     m_presenterr;
-  double     m_errorbuff[ERRORBUFFSIZE];
-  int        m_errorindex;
-  EPRESENTSTEP     m_presentstep;
-  int        m_presentsource;
+  double m_sleeptime;
+  double m_presentpts;
+  double m_presentcorr;
+  double m_presenterr;
+  double m_errorbuff[ERRORBUFFSIZE];
+  int m_errorindex;
+  EPRESENTSTEP m_presentstep;
+  int m_presentsource;
   XbmcThreads::ConditionVariable  m_presentevent;
   CCriticalSection m_presentlock;
-  CEvent     m_flushEvent;
-  double     m_clock_framefinish;
-
+  CEvent m_flushEvent;
+  double m_clock_framefinish;
 
   OVERLAY::CRenderer m_overlays;
   bool m_renderedOverlay;
 
   void RenderCapture(CRenderCapture* capture);
   void RemoveCapture(CRenderCapture* capture);
-  CCriticalSection           m_captCritSect;
+  CCriticalSection m_captCritSect;
   std::list<CRenderCapture*> m_captures;
   //set to true when adding something to m_captures, set to false when m_captures is made empty
   //std::list::empty() isn't thread safe, using an extra bool will save a lock per render when no captures are requested
-  bool                       m_hasCaptures; 
+  bool m_hasCaptures;
 };
 
 extern CXBMCRenderManager g_renderManager;

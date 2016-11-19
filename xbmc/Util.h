@@ -24,8 +24,7 @@
 #include <vector>
 #include <string.h>
 #include <stdint.h>
-#include "utils/StringUtils.h"
-#include "MediaSource.h"
+#include "MediaSource.h" // Definition of VECSOURCES
 
 #define ARRAY_SIZE(X)         (sizeof(X)/sizeof((X)[0]))
 
@@ -36,18 +35,6 @@
 
 class CFileItemList;
 class CURL;
-
-struct sortstringbyname
-{
-  bool operator()(const std::string& strItem1, const std::string& strItem2)
-  {
-    std::string strLine1 = strItem1;
-    std::string strLine2 = strItem2;
-    StringUtils::ToLower(strLine1);
-    StringUtils::ToLower(strLine2);
-    return strcmp(strLine1.c_str(), strLine2.c_str()) < 0;
-  }
-};
 
 struct ExternalStreamInfo
 {
@@ -173,12 +160,6 @@ public:
    */
   static bool SupportsReadFileOperations(const std::string& strPath);
   static std::string GetDefaultFolderThumb(const std::string &folderThumb);
-
-#ifdef UNIT_TESTING
-  static bool TestSplitExec();
-  static bool TestGetQualifiedFilename();
-  static bool TestMakeLegalPath();
-#endif
 
   static void InitRandomSeed();
 

@@ -24,7 +24,6 @@
 #include "cores/DllLoader/DllLoaderContainer.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
-#include "utils/TimeUtils.h"
 #include "utils/StringUtils.h"
 
 using namespace std;
@@ -135,7 +134,6 @@ void CSectionLoader::UnloadAll()
   while (it != g_sectionLoader.m_vecLoadedDLLs.end())
   {
     CDll& dll = *it;
-    CLog::Log(LOGDEBUG,"SECTION:UnloadAll(DLL: %s)", dll.m_strDllName.c_str());
     if (dll.m_pDll)
       DllLoaderContainer::ReleaseModule(dll.m_pDll);
     it = g_sectionLoader.m_vecLoadedDLLs.erase(it);

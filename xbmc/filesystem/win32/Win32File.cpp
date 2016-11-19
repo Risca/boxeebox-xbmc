@@ -24,19 +24,16 @@
 #include "utils/win32/Win32Log.h"
 #include "utils/SystemInfo.h"
 #include "utils/auto_buffer.h"
-#include "utils/StringUtils.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif // WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <intsafe.h>
 #include <wchar.h>
-#include <limits.h>
 #include <cassert>
 
 
@@ -534,9 +531,7 @@ int CWin32File::Stat(const CURL& url, struct __stat64* statData)
     FILE_BASIC_INFO basicInfo;
     if (GetFileInformationByHandleEx(hFile, FileBasicInfo, &basicInfo, sizeof(basicInfo)) != 0)
     {
-      statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.ChangeTime); // most accurate value
-      if (statData->st_mtime == 0)
-        statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.LastWriteTime); // less accurate value
+      statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.LastWriteTime);
       statData->st_atime = CWIN32Util::fileTimeToTimeT(basicInfo.LastAccessTime);
       statData->st_ctime = CWIN32Util::fileTimeToTimeT(basicInfo.CreationTime);
     }
@@ -639,9 +634,7 @@ int CWin32File::Stat(struct __stat64* statData)
   if (GetFileInformationByHandleEx(m_hFile, FileBasicInfo, &basicInfo, sizeof(basicInfo)) == 0)
     return -1; // can't get basic file information
 
-  statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.ChangeTime); // most accurate value
-  if (statData->st_mtime == 0)
-    statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.LastWriteTime); // less accurate value
+  statData->st_mtime = CWIN32Util::fileTimeToTimeT(basicInfo.LastWriteTime);
 
   statData->st_atime = CWIN32Util::fileTimeToTimeT(basicInfo.LastAccessTime);
   if (statData->st_atime == 0)

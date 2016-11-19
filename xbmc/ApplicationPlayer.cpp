@@ -131,11 +131,21 @@ int CApplicationPlayer::GetChapterCount()
     return 0;
 }
 
-void CApplicationPlayer::GetChapterName(std::string& strChapterName)
+void CApplicationPlayer::GetChapterName(std::string& strChapterName,
+                                        int chapterIdx)
 {
   std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
-    player->GetChapterName(strChapterName);
+    player->GetChapterName(strChapterName, chapterIdx);
+}
+
+int64_t CApplicationPlayer::GetChapterPos(int chapterIdx)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+    return player->GetChapterPos(chapterIdx);
+
+  return -1;
 }
 
 bool CApplicationPlayer::HasAudio() const
@@ -148,6 +158,17 @@ bool CApplicationPlayer::HasVideo() const
 {
   std::shared_ptr<IPlayer> player = GetInternal();
   return (player && player->HasVideo());
+}
+
+int CApplicationPlayer::GetPreferredPlaylist() const
+{
+  if (IsPlayingVideo())
+    return PLAYLIST_VIDEO;
+
+  if (IsPlayingAudio())
+    return PLAYLIST_MUSIC;
+
+  return PLAYLIST_NONE;
 }
 
 bool CApplicationPlayer::IsPaused() const
@@ -243,6 +264,20 @@ void CApplicationPlayer::SeekTime(int64_t iTime)
     player->SeekTime(iTime);
 }
 
+void CApplicationPlayer::SeekTimeRelative(int64_t iTime)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    // use relative seeking if implemented by player
+    if (!player->SeekTimeRelative(iTime))
+    {
+      int64_t abstime = player->GetTime() + iTime;
+      player->SeekTime(abstime);
+    }
+  }
+}
+
 std::string CApplicationPlayer::GetPlayingTitle()
 {
   std::shared_ptr<IPlayer> player = GetInternal();
@@ -257,6 +292,15 @@ int64_t CApplicationPlayer::GetTime() const
   std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
     return player->GetTime();
+  else
+    return 0;
+}
+
+int64_t CApplicationPlayer::GetDisplayTime() const
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+    return player->GetDisplayTime();
   else
     return 0;
 }
@@ -514,13 +558,11 @@ void CApplicationPlayer::SetSubtitleVisible(bool bVisible)
   }
 }
 
-int  CApplicationPlayer::AddSubtitle(const std::string& strSubPath)
+void CApplicationPlayer::AddSubtitle(const std::string& strSubPath)
 {
   std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
-    return player->AddSubtitle(strSubPath);
-  else
-    return 0;
+    player->AddSubtitle(strSubPath);
 }
 
 void CApplicationPlayer::SetSubTitleDelay(float fValue)
@@ -544,7 +586,7 @@ void CApplicationPlayer::SetDynamicRangeCompression(long drc)
     player->SetDynamicRangeCompression(drc);
 }
 
-bool CApplicationPlayer::SwitchChannel(PVR::CPVRChannel &channel)
+bool CApplicationPlayer::SwitchChannel(const PVR::CPVRChannelPtr &channel)
 {
   std::shared_ptr<IPlayer> player = GetInternal();
   return (player && player->SwitchChannel(channel));

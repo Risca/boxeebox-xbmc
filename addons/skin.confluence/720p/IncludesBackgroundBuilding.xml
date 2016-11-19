@@ -51,7 +51,6 @@
 			<width>1280</width>
 			<height>720</height>
 			<visible>Player.HasAudio + !Skin.HasSetting(ShowBackgroundVis)</visible>
-			<visible>!SubString(Window(videolibrary).Property(TvTunesIsAlive),True)</visible>
 		</control>
 		<control type="videowindow">
 			<left>0</left>
@@ -66,7 +65,7 @@
 			<width>1280</width>
 			<height>120</height>
 			<texture flipy="true" border="1">HomeNowPlayingBack.png</texture>
-			<visible>[Player.HasVideo + !Skin.HasSetting(ShowBackgroundVideo)] | [Player.HasAudio + ![Skin.HasSetting(ShowBackgroundVis) | SubString(Window(videolibrary).Property(TvTunesIsAlive),True)]] | [!Skin.HasSetting(HideBackGroundFanart) + !IsEmpty(ListItem.Property(Fanart_Image))]</visible>
+			<visible>[Player.HasVideo + !Skin.HasSetting(ShowBackgroundVideo)] | [Player.HasAudio + !Skin.HasSetting(ShowBackgroundVis)] | [!Skin.HasSetting(HideBackGroundFanart) + !IsEmpty(ListItem.Property(Fanart_Image))]</visible>
 			<include>VisibleFadeEffect</include>
 		</control>
 	</include>
@@ -77,8 +76,8 @@
 			<width>1280</width>
 			<height>100</height>
 			<texture>floor.png</texture>
-			<animation effect="slide" start="0,10" end="0,0" time="200" condition="Window.Previous(Home)">WindowOpen</animation>
-			<animation effect="slide" start="0,0" end="0,10" time="200" condition="Window.Next(Home)">WindowClose</animation>
+			<animation effect="slide" start="0,10" end="0,0" time="150" condition="Window.Previous(Home)">WindowOpen</animation>
+			<animation effect="slide" start="0,0" end="0,10" time="150" condition="Window.Next(Home)">WindowClose</animation>
 		</control>
 		<control type="group">
 			<include>Window_OpenClose_Animation</include>

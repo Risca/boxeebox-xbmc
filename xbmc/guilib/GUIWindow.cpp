@@ -21,8 +21,7 @@
 #include "system.h"
 #include "GUIWindow.h"
 #include "GUIWindowManager.h"
-#include "Key.h"
-#include "LocalizeStrings.h"
+#include "input/Key.h"
 #include "GUIControlFactory.h"
 #include "GUIControlGroup.h"
 #include "GUIControlProfiler.h"
@@ -657,7 +656,8 @@ bool CGUIWindow::OnMessage(CGUIMessage& message)
     {
       CAction action(ACTION_GESTURE_NOTIFY, 0, (float)message.GetParam1(), (float)message.GetParam2(), 0, 0);
       EVENT_RESULT result = OnMouseAction(action);
-      message.SetParam1(result);
+      auto res = new int(result);
+      message.SetPointer(static_cast<void*>(res));
       return result != EVENT_RESULT_UNHANDLED;
     }
   case GUI_MSG_ADD_CONTROL:
@@ -751,7 +751,7 @@ void CGUIWindow::AllocResources(bool forceLoad /*= FALSE */)
   else
   {
     CLog::Log(LOGDEBUG,"Window %s was already loaded", GetProperty("xmlfile").c_str());
-    CLog::Log(LOGDEBUG,"Alloc resources: %.2fm", 1000.f * (end - start) / freq);
+    CLog::Log(LOGDEBUG,"Alloc resources: %.2fms", 1000.f * (end - start) / freq);
   }
 #endif
   m_bAllocated = true;

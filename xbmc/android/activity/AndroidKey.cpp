@@ -21,7 +21,7 @@
 #include "AndroidKey.h"
 #include "AndroidExtra.h"
 #include "XBMCApp.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "windowing/WinEvents.h"
 #include "android/jni/KeyCharacterMap.h"
 
@@ -56,8 +56,8 @@ static KeyMap keyMap[] = {
   { AKEYCODE_DPAD_LEFT       , XBMCK_LEFT },
   { AKEYCODE_DPAD_RIGHT      , XBMCK_RIGHT },
   { AKEYCODE_DPAD_CENTER     , XBMCK_RETURN },
-  { AKEYCODE_VOLUME_UP       , XBMCK_PLUS },
-  { AKEYCODE_VOLUME_DOWN     , XBMCK_MINUS },
+  { AKEYCODE_VOLUME_UP       , XBMCK_LAST },
+  { AKEYCODE_VOLUME_DOWN     , XBMCK_LAST },
   { AKEYCODE_POWER           , XBMCK_POWER },
   { AKEYCODE_CAMERA          , XBMCK_LAST },
   { AKEYCODE_CLEAR           , XBMCK_LAST },
@@ -123,7 +123,7 @@ static KeyMap keyMap[] = {
   { AKEYCODE_MEDIA_PREVIOUS  , XBMCK_MEDIA_PREV_TRACK },
   { AKEYCODE_MEDIA_REWIND    , XBMCK_MEDIA_REWIND },
   { AKEYCODE_MEDIA_FAST_FORWARD , XBMCK_MEDIA_FASTFORWARD },
-  { AKEYCODE_MUTE            , XBMCK_VOLUME_MUTE },
+  { AKEYCODE_MUTE            , XBMCK_LAST },
   { AKEYCODE_PAGE_UP         , XBMCK_PAGEUP },
   { AKEYCODE_PAGE_DOWN       , XBMCK_PAGEDOWN },
   { AKEYCODE_PICTSYMBOLS     , XBMCK_LAST },
@@ -192,7 +192,10 @@ bool CAndroidKey::onKeyboardEvent(AInputEvent *event)
 
   // check if this is a key we don't want to handle
   if (sym == XBMCK_LAST || sym == XBMCK_UNKNOWN)
+  {
+    CXBMCApp::android_printf("CAndroidKey: key ignored (code: %d)", keycode);
     return false;
+  }
 
   uint16_t modifiers = 0;
   if (state & AMETA_ALT_LEFT_ON)

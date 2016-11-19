@@ -52,11 +52,7 @@
 
 #define HAS_FILESYSTEM
 #define HAS_FILESYSTEM_CDDA
-#define HAS_FILESYSTEM_RTV
-#define HAS_FILESYSTEM_DAAP
 #define HAS_FILESYSTEM_SAP
-#define HAS_FILESYSTEM_VTP
-#define HAS_FILESYSTEM_HTSP
 
 #ifdef HAVE_LIBSMBCLIENT
   #define HAS_FILESYSTEM_SMB
@@ -64,10 +60,6 @@
 
 #ifdef HAVE_LIBNFS
   #define HAS_FILESYSTEM_NFS
-#endif
-
-#ifdef HAVE_LIBAFPCLIENT
-  #define HAS_FILESYSTEM_AFP
 #endif
 
 #ifdef HAVE_LIBPLIST
@@ -144,7 +136,6 @@
   #if defined(TARGET_DARWIN_OSX)
     #define HAS_GL
     #define HAS_SDL
-    #define HAS_SDL_OPENGL
     #define HAS_SDL_WIN_EVENTS
   #endif
   #define HAS_ZEROCONF
@@ -170,9 +161,6 @@
 #endif
 #ifdef HAVE_SDL
 #define HAS_SDL
-#ifndef HAS_SDL_OPENGL
-#define HAS_SDL_OPENGL
-#endif
 #ifndef HAVE_X11
 #define HAS_SDL_WIN_EVENTS
 #endif
@@ -182,12 +170,11 @@
 #endif
 #endif
 #define HAS_LINUX_NETWORK
+#ifdef HAVE_LIRC
 #define HAS_LIRC
+#endif
 #ifdef HAVE_LIBPULSE
 #define HAS_PULSEAUDIO
-#endif
-#ifdef HAVE_LIBXRANDR
-#define HAS_XRANDR
 #endif
 #ifdef HAVE_ALSA
 #define HAS_ALSA

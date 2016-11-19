@@ -91,6 +91,8 @@ namespace MUSIC_INFO
 #define TMSG_CECACTIVATESOURCE    317
 #define TMSG_CECSTANDBY           318
 #define TMSG_SETVIDEORESOLUTION   319
+#define TMSG_SETPVRMANAGERSTATE   320
+#define TMSG_VIDEORESIZE          321
 
 #define TMSG_NETWORKMESSAGE         500
 
@@ -109,7 +111,6 @@ namespace MUSIC_INFO
 #define TMSG_CALLBACK             800
 
 #define TMSG_VOLUME_SHOW          900
-#define TMSG_SPLASH_MESSAGE       901
 
 #define TMSG_DISPLAY_SETUP      1000
 #define TMSG_DISPLAY_DESTROY    1001
@@ -230,7 +231,7 @@ public:
   void DoModal(CGUIDialog *pDialog, int iWindowID, const std::string &param = "");
   void Show(CGUIDialog *pDialog);
   void Close(CGUIWindow *window, bool forceClose, bool waitResult = true, int nextWindowID = 0, bool enableSound = true);
-  void ActivateWindow(int windowID, const std::vector<std::string> &params, bool swappingWindows);
+  void ActivateWindow(int windowID, const std::vector<std::string> &params, bool swappingWindows, bool force = false);
   void SendAction(const CAction &action, int windowID = WINDOW_INVALID, bool waitResult=true);
 
   //! \brief Send text to currently focused window / keyboard.
@@ -249,8 +250,10 @@ public:
 
   void ShowVolumeBar(bool up);
 
-  void SetSplashMessage(const std::string& message);
-  void SetSplashMessage(int stringID);
+  /*! \brief Used to enable/disable PVR system without waiting.
+   \param onOff if true it becomes switched on otherwise off
+   */
+  void SetPVRManagerState(bool onOff);
   
   bool SetupDisplay();
   bool DestroyDisplay();

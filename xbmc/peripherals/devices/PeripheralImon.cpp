@@ -20,17 +20,9 @@
 
 #include "PeripheralImon.h"
 #include "utils/log.h"
-#include "guilib/LocalizeStrings.h"
 #include "settings/Settings.h"
 #include "threads/Atomics.h"
 #include "input/InputManager.h"
-#if defined (TARGET_WINDOWS)
-#include "system.h" // For HAS_SDL_JOYSTICK
-#if defined (HAS_SDL_JOYSTICK)
-#include "input/windows/WINJoystick.h"
-#endif // HAS_SDL_JOYSTICK
-#endif // TARGET_WINDOWS
-
 
 using namespace PERIPHERALS;
 using namespace std;
@@ -111,7 +103,7 @@ void CPeripheralImon::ActionOnImonConflict(bool deviceInserted /*= true*/)
     bool enableJoystickNow = !deviceInserted && CSettings::Get().GetBool("input.enablejoystick");
     CLog::Log(LOGNOTICE, "Problematic iMON hardware %s. Joystick usage: %s", (deviceInserted ? "detected" : "was removed"),
         (enableJoystickNow) ? "enabled." : "disabled." );
-    CInputManager::GetInstance().SetEnabledJoystick(enableJoystickNow);
+    CInputManager::Get().SetEnabledJoystick(enableJoystickNow);
 #endif
   }
 }

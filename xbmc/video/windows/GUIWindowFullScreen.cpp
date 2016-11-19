@@ -23,40 +23,29 @@
 #include "GUIWindowFullScreen.h"
 #include "Application.h"
 #include "ApplicationMessenger.h"
-#include "Util.h"
 #ifdef HAS_VIDEO_PLAYBACK
 #include "cores/VideoRenderers/RenderManager.h"
 #endif
 #include "GUIInfoManager.h"
 #include "guilib/GUIProgressControl.h"
-#include "guilib/GUIAudioManager.h"
 #include "guilib/GUILabelControl.h"
 #include "video/dialogs/GUIDialogVideoOSD.h"
-#include "guilib/GUIFontManager.h"
-#include "guilib/GUITextLayout.h"
 #include "guilib/GUIWindowManager.h"
-#include "guilib/Key.h"
+#include "input/Key.h"
 #include "video/dialogs/GUIDialogFullScreenInfo.h"
-#include "dialogs/GUIDialogNumeric.h"
 #include "settings/DisplaySettings.h"
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "FileItem.h"
 #include "video/VideoReferenceClock.h"
-#include "settings/AdvancedSettings.h"
 #include "utils/CPUInfo.h"
 #include "guilib/LocalizeStrings.h"
 #include "threads/SingleLock.h"
-#include "utils/log.h"
-#include "utils/TimeUtils.h"
-#include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
 #include "XBDateTime.h"
 #include "input/ButtonTranslator.h"
 #include "windowing/WindowingFactory.h"
 #include "cores/IPlayer.h"
-#include "filesystem/File.h"
-#include "utils/SeekHandler.h"
 
 #include <stdio.h>
 #include <algorithm>
@@ -251,7 +240,11 @@ bool CGUIWindowFullScreen::OnAction(const CAction &action)
 void CGUIWindowFullScreen::ClearBackground()
 {
   if (g_renderManager.IsVideoLayer())
+#ifdef HAS_IMXVPU
+    g_graphicsContext.Clear((16 << 16)|(8 << 8)|16);
+#else
     g_graphicsContext.Clear(0);
+#endif
 }
 
 void CGUIWindowFullScreen::OnWindowLoaded()
@@ -323,20 +316,8 @@ bool CGUIWindowFullScreen::OnMessage(CGUIMessage& message)
     }
   case GUI_MSG_WINDOW_DEINIT:
     {
-      CGUIDialog *pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_OSD_TELETEXT);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_SLIDER);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_VIDEO_OSD);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_FULLSCREEN_INFO);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_PVR_OSD_CHANNELS);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_PVR_OSD_GUIDE);
-      if (pDialog) pDialog->Close(true);
-      pDialog = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_SUBTITLES);
-      if (pDialog) pDialog->Close(true);
+      // close all active modal dialogs
+      g_windowManager.CloseInternalModalDialogs(true);
 
       CGUIWindow::OnMessage(message);
 
@@ -439,9 +420,8 @@ void CGUIWindowFullScreen::FrameMove()
                                        , clockspeed - 100.0
                                        , g_renderManager.GetVSyncState().c_str());
 
-      strGeneralFPS = StringUtils::Format("%s\nW( fps:%02.2f %s )\n%s"
+      strGeneralFPS = StringUtils::Format("%s\nW( %s )\n%s"
                                           , strGeneral.c_str()
-                                          , g_infoManager.GetFPS()
                                           , strCores.c_str(), strClock.c_str() );
 
       CGUIMessage msg(GUI_MSG_LABEL_SET, GetID(), LABEL_ROW3);

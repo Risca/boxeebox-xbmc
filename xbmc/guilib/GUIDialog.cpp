@@ -21,17 +21,16 @@
 #include "GUIDialog.h"
 #include "GUIWindowManager.h"
 #include "GUILabelControl.h"
-#include "GUIAudioManager.h"
 #include "threads/SingleLock.h"
 #include "utils/TimeUtils.h"
 #include "Application.h"
 #include "ApplicationMessenger.h"
-#include "Key.h"
+#include "input/Key.h"
 
 CGUIDialog::CGUIDialog(int id, const std::string &xmlFile)
     : CGUIWindow(id, xmlFile)
 {
-  m_bModal = true;
+  m_modalityType = DialogModalityType::MODAL;
   m_wasRunning = false;
   m_renderOrder = 1;
   m_autoClosing = false;
@@ -170,13 +169,13 @@ void CGUIDialog::DoModal_Internal(int iWindowID /*= WINDOW_INVALID */, const std
     return; // don't do anything
 
   m_closing = false;
-  m_bModal = true;
+  m_modalityType = DialogModalityType::MODAL;
   // set running before it's added to the window manager, else the auto-show code
   // could show it as well if we are in a different thread from
   // the main rendering thread (this should really be handled via
   // a thread message though IMO)
   m_active = true;
-  g_windowManager.RouteToWindow(this);
+  g_windowManager.RegisterDialog(this);
 
   // active this window...
   CGUIMessage msg(GUI_MSG_WINDOW_INIT, 0, 0, WINDOW_INVALID, iWindowID);
@@ -205,7 +204,7 @@ void CGUIDialog::Show_Internal()
   if (!g_windowManager.Initialized())
     return; // don't do anything
 
-  m_bModal = false;
+  m_modalityType = DialogModalityType::MODELESS;
 
   // set running before it's added to the window manager, else the auto-show code
   // could show it as well if we are in a different thread from
@@ -213,7 +212,7 @@ void CGUIDialog::Show_Internal()
   // a thread message though IMO)
   m_active = true;
   m_closing = false;
-  g_windowManager.AddModeless(this);
+  g_windowManager.RegisterDialog(this);
 
   // active this window...
   CGUIMessage msg(GUI_MSG_WINDOW_INIT, 0, 0);

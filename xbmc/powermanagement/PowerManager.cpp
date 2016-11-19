@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
+ *      Copyright (C) 2005-2015 Team XBMC
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -18,11 +18,12 @@
  *
  */
 
+#include <memory>
+#include <list>
 #include "system.h"
 #include "PowerManager.h"
 #include "Application.h"
 #include "cores/AudioEngine/AEFactory.h"
-#include "input/KeyboardStat.h"
 #include "settings/lib/Setting.h"
 #include "settings/Settings.h"
 #include "windowing/WindowingFactory.h"
@@ -31,10 +32,10 @@
 #include "interfaces/Builtins.h"
 #include "interfaces/AnnouncementManager.h"
 #include "guilib/LocalizeStrings.h"
-#include "guilib/GraphicContext.h"
 #include "guilib/GUIWindowManager.h"
 #include "dialogs/GUIDialogBusy.h"
 #include "dialogs/GUIDialogKaiToast.h"
+#include "pvr/PVRManager.h"
 
 #if defined(TARGET_DARWIN)
 #include "osx/CocoaPowerSyscall.h"
@@ -79,14 +80,40 @@ void CPowerManager::Initialize()
   m_instance = new CBoxeeBoxPowerSyscall();
 #elif defined(TARGET_POSIX)
 #if defined(HAS_DBUS)
-  if (CConsoleUPowerSyscall::HasConsoleKitAndUPower())
-    m_instance = new CConsoleUPowerSyscall();
-  else if (CConsoleDeviceKitPowerSyscall::HasDeviceConsoleKit())
-    m_instance = new CConsoleDeviceKitPowerSyscall();
-  else if (CLogindUPowerSyscall::HasLogind())
-    m_instance = new CLogindUPowerSyscall();
-  else if (CUPowerSyscall::HasUPower())
-    m_instance = new CUPowerSyscall();
+  std::unique_ptr<IPowerSyscall> bestPowerManager;
+  std::unique_ptr<IPowerSyscall> currPowerManager;
+  int bestCount = -1;
+  int currCount = -1;
+  
+  std::list< std::pair< std::function<bool()>,
+                        std::function<IPowerSyscall*()> > > powerManagers =
+  {
+    std::make_pair(CConsoleUPowerSyscall::HasConsoleKitAndUPower,
+                   [] { return new CConsoleUPowerSyscall(); }),
+    std::make_pair(CConsoleDeviceKitPowerSyscall::HasDeviceConsoleKit,
+                   [] { return new CConsoleDeviceKitPowerSyscall(); }),
+    std::make_pair(CLogindUPowerSyscall::HasLogind,
+                   [] { return new CLogindUPowerSyscall(); }),
+    std::make_pair(CUPowerSyscall::HasUPower,
+                   [] { return new CUPowerSyscall(); })
+  };
+  for(const auto& powerManager : powerManagers)
+  {
+    if (powerManager.first())
+    {
+      currPowerManager.reset(powerManager.second());
+      currCount = currPowerManager->CountPowerFeatures();
+      if (currCount > bestCount)
+      {
+        bestCount = currCount;
+        bestPowerManager = std::move(currPowerManager);
+      }
+      if (bestCount == IPowerSyscall::MAX_COUNT_POWER_FEATURES)
+        break;
+    }
+  }
+  if (bestPowerManager)
+    m_instance = bestPowerManager.release();
   else
 #endif // HAS_DBUS
     m_instance = new CFallbackPowerSyscall();
@@ -158,31 +185,14 @@ bool CPowerManager::Powerdown()
 
 bool CPowerManager::Suspend()
 {
-  if (CanSuspend() && m_instance->Suspend())
-  {
-    CGUIDialogBusy* dialog = (CGUIDialogBusy*)g_windowManager.GetWindow(WINDOW_DIALOG_BUSY);
-    if (dialog)
-      dialog->Show();
-
-    return true;
-  }
-
-  return false;
+  return (CanSuspend() && m_instance->Suspend());
 }
 
 bool CPowerManager::Hibernate()
 {
-  if (CanHibernate() && m_instance->Hibernate())
-  {
-    CGUIDialogBusy* dialog = (CGUIDialogBusy*)g_windowManager.GetWindow(WINDOW_DIALOG_BUSY);
-    if (dialog)
-      dialog->Show();
-
-    return true;
-  }
-
-  return false;
+  return (CanHibernate() && m_instance->Hibernate());
 }
+
 bool CPowerManager::Reboot()
 {
   bool success = CanReboot() ? m_instance->Reboot() : false;
@@ -232,6 +242,11 @@ void CPowerManager::ProcessEvents()
 void CPowerManager::OnSleep()
 {
   CAnnouncementManager::Get().Announce(System, "xbmc", "OnSleep");
+
+  CGUIDialogBusy* dialog = (CGUIDialogBusy*)g_windowManager.GetWindow(WINDOW_DIALOG_BUSY);
+  if (dialog)
+    dialog->Show();
+
   CLog::Log(LOGNOTICE, "%s: Running sleep jobs", __FUNCTION__);
 
   // stop lirc
@@ -240,6 +255,7 @@ void CPowerManager::OnSleep()
   CBuiltins::Execute("LIRC.Stop");
 #endif
 
+  PVR::CPVRManager::Get().SetWakeupCommand();
   g_application.SaveFileState(true);
   g_application.StopPlaying();
   g_application.StopShutdownTimer();

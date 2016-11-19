@@ -134,7 +134,13 @@ int MysqlDatabase::connect(bool create_new) {
       return DB_CONNECTION_NONE;
 
     // establish connection with just user credentials
-    if (mysql_real_connect(conn, host.c_str(),login.c_str(),passwd.c_str(), NULL, atoi(port.c_str()),NULL,0) != NULL)
+    if (mysql_real_connect(conn, host.c_str(),
+                                 login.c_str(),
+                                 passwd.c_str(),
+                                 NULL,
+                                 atoi(port.c_str()),
+                                 NULL,
+                                 compression ? CLIENT_COMPRESS : 0) != NULL)
     {
       // disable mysql autocommit since we handle it
       //mysql_autocommit(conn, false);
@@ -265,17 +271,17 @@ int MysqlDatabase::copy(const char *backup_name) {
     while ( (row=mysql_fetch_row(res)) != NULL )
     {
       // copy the table definition
-      sprintf(sql, "CREATE TABLE %s.%s LIKE %s",
+      sprintf(sql, "CREATE TABLE `%s`.%s LIKE %s",
               backup_name, row[0], row[0]);
 
       if ( (ret=query_with_reconnect(sql)) != MYSQL_OK )
       {
         mysql_free_result(res);
-        throw DbErrors("Can't copy schema for table '%s'\nError: %s", db.c_str(), ret);
+        throw DbErrors("Can't copy schema for table '%s'\nError: %d", row[0], ret);
       }
 
       // copy the table data
-      sprintf(sql, "INSERT INTO %s.%s SELECT * FROM %s",
+      sprintf(sql, "INSERT INTO `%s`.%s SELECT * FROM %s",
               backup_name, row[0], row[0]);
 
       if ( (ret=query_with_reconnect(sql)) != MYSQL_OK )
@@ -320,7 +326,7 @@ int MysqlDatabase::drop_analytics(void) {
   {
     while ( (row=mysql_fetch_row(res)) != NULL )
     {
-      sprintf(sql, "ALTER TABLE %s.%s DROP INDEX %s", db.c_str(), row[0], row[1]);
+      sprintf(sql, "ALTER TABLE `%s`.%s DROP INDEX %s", db.c_str(), row[0], row[1]);
 
       if ( (ret=query_with_reconnect(sql)) != MYSQL_OK )
       {
@@ -345,7 +351,7 @@ int MysqlDatabase::drop_analytics(void) {
     while ( (row=mysql_fetch_row(res)) != NULL )
     {
       /* we do not need IF EXISTS because these views are exist */
-      sprintf(sql, "DROP VIEW %s.%s", db.c_str(), row[0]);
+      sprintf(sql, "DROP VIEW `%s`.%s", db.c_str(), row[0]);
 
       if ( (ret=query_with_reconnect(sql)) != MYSQL_OK )
       {
@@ -369,12 +375,12 @@ int MysqlDatabase::drop_analytics(void) {
   {
     while ( (row=mysql_fetch_row(res)) != NULL )
     {
-      sprintf(sql, "DROP TRIGGER %s.%s", db.c_str(), row[0]);
+      sprintf(sql, "DROP TRIGGER `%s`.%s", db.c_str(), row[0]);
 
       if ( (ret=query_with_reconnect(sql)) != MYSQL_OK )
       {
         mysql_free_result(res);
-        throw DbErrors("Can't create trigger '%s'\nError: %s", row[0], ret);
+        throw DbErrors("Can't create trigger '%s'\nError: %d", row[0], ret);
       }
     }
     mysql_free_result(res);
@@ -443,6 +449,7 @@ long MysqlDatabase::nextid(const char* sname) {
 void MysqlDatabase::start_transaction() {
   if (active)
   {
+    mysql_autocommit(conn, false);
     CLog::Log(LOGDEBUG,"Mysql Start transaction");
     _in_transaction = true;
   }
@@ -452,6 +459,7 @@ void MysqlDatabase::commit_transaction() {
   if (active)
   {
     mysql_commit(conn);
+    mysql_autocommit(conn, true);
     CLog::Log(LOGDEBUG,"Mysql commit transaction");
     _in_transaction = false;
   }
@@ -461,6 +469,7 @@ void MysqlDatabase::rollback_transaction() {
   if (active)
   {
     mysql_rollback(conn);
+    mysql_autocommit(conn, true);
     CLog::Log(LOGDEBUG,"Mysql rollback transaction");
     _in_transaction = false;
   }
@@ -1447,7 +1456,15 @@ int MysqlDataset::exec(const string &sql) {
   if ( ci_find(qry, "CREATE TABLE") != string::npos 
     || ci_find(qry, "CREATE TEMPORARY TABLE") != string::npos )
   {
-    qry += " CHARACTER SET utf8 COLLATE utf8_general_ci";
+    // If CREATE TABLE ... SELECT Syntax is used we need to add the encoding after the table before the select
+    // e.g. CREATE TABLE x CHARACTER SET utf8 COLLATE utf8_general_ci [AS] SELECT * FROM y
+    if ((loc = qry.find(" AS SELECT ")) != string::npos ||
+        (loc = qry.find(" SELECT ")) != string::npos)
+    {
+      qry = qry.insert(loc, " CHARACTER SET utf8 COLLATE utf8_general_ci");
+    }
+    else
+      qry += " CHARACTER SET utf8 COLLATE utf8_general_ci";
   }
 
   CLog::Log(LOGDEBUG,"Mysql execute: %s", qry.c_str());

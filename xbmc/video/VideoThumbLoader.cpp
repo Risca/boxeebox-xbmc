@@ -24,7 +24,6 @@
 #include "filesystem/StackDirectory.h"
 #include "utils/URIUtils.h"
 #include "URL.h"
-#include "filesystem/File.h"
 #include "filesystem/DirectoryCache.h"
 #include "FileItem.h"
 #include "settings/Settings.h"
@@ -38,7 +37,6 @@
 #include "video/VideoInfoTag.h"
 #include "video/VideoDatabase.h"
 #include "cores/dvdplayer/DVDFileInfo.h"
-#include "video/VideoInfoScanner.h"
 #include "music/MusicDatabase.h"
 #include "utils/StringUtils.h"
 #include "settings/AdvancedSettings.h"
@@ -50,12 +48,16 @@ using namespace VIDEO;
 CThumbExtractor::CThumbExtractor(const CFileItem& item,
                                  const std::string& listpath,
                                  bool thumb,
-                                 const std::string& target)
+                                 const std::string& target,
+                                 int64_t pos,
+                                 bool fillStreamDetails)
 {
   m_listpath = listpath;
   m_target = target;
   m_thumb = thumb;
   m_item = item;
+  m_pos = pos;
+  m_fillStreamDetails = fillStreamDetails;
 
   if (item.IsVideoDb() && item.HasVideoInfoTag())
     m_item.SetPath(item.GetVideoInfoTag()->m_strFileNameAndPath);
@@ -73,7 +75,8 @@ bool CThumbExtractor::operator==(const CJob* job) const
   if (strcmp(job->GetType(),GetType()) == 0)
   {
     const CThumbExtractor* jobExtract = dynamic_cast<const CThumbExtractor*>(job);
-    if (jobExtract && jobExtract->m_listpath == m_listpath)
+    if (jobExtract && jobExtract->m_listpath == m_listpath
+                   && jobExtract->m_target == m_target)
       return true;
   }
   return false;
@@ -83,7 +86,6 @@ bool CThumbExtractor::DoWork()
 {
   if (m_item.IsLiveTV()
   ||  URIUtils::IsUPnP(m_item.GetPath())
-  ||  m_item.IsDAAP()
   ||  m_item.IsDVD()
   ||  m_item.IsDiscImage()
   ||  m_item.IsDVDFile(false, true)
@@ -92,12 +94,12 @@ bool CThumbExtractor::DoWork()
   ||  m_item.IsPlayList())
     return false;
 
-  if (URIUtils::IsRemote(m_item.GetPath()) && !URIUtils::IsOnLAN(m_item.GetPath()))
-  {
-    // A quasi internet filesystem like webdav is generally fast enough for extracting stuff
-    if (!URIUtils::IsDAV(m_item.GetPath()))
-      return false;
-  }
+  // For HTTP/FTP we only allow extraction when on a LAN
+  if (URIUtils::IsRemote(m_item.GetPath()) &&
+     !URIUtils::IsOnLAN(m_item.GetPath())  &&
+     (URIUtils::IsFTP(m_item.GetPath())    ||
+      URIUtils::IsHTTP(m_item.GetPath())))
+    return false;
 
   bool result=false;
   if (m_thumb)
@@ -106,7 +108,7 @@ bool CThumbExtractor::DoWork()
     // construct the thumb cache file
     CTextureDetails details;
     details.file = CTextureCache::GetCacheFile(m_target) + ".jpg";
-    result = CDVDFileInfo::ExtractThumb(m_item.GetPath(), details, &m_item.GetVideoInfoTag()->m_streamDetails);
+    result = CDVDFileInfo::ExtractThumb(m_item.GetPath(), details, m_fillStreamDetails ? &m_item.GetVideoInfoTag()->m_streamDetails : NULL, (int) m_pos);
     if(result)
     {
       CTextureCache::Get().AddCachedTexture(m_target, details);
@@ -154,7 +156,7 @@ bool CThumbExtractor::DoWork()
         db.SetStreamDetailsForFileId(info->m_streamDetails, info->m_iFileId);
 
       // overwrite the runtime value if the one from streamdetails is available
-      if (info->m_iDbId > 0 && info->m_duration != info->GetDuration())
+      if (info->m_iDbId > 0 && info->m_duration != static_cast<int>(info->GetDuration()))
       {
         info->m_duration = info->GetDuration();
 
@@ -432,7 +434,7 @@ bool CVideoThumbLoader::FillLibraryArt(CFileItem &item)
     m_videoDatabase->Open();
     if (m_videoDatabase->GetArtForItem(tag.m_iDbId, tag.m_type, artwork))
       SetArt(item, artwork);
-    else if (tag.m_type == MediaTypeArtist)
+    else if (tag.m_type == "actor" && !tag.m_artist.empty())
     { // we retrieve music video art from the music database (no backward compat)
       CMusicDatabase database;
       database.Open();
@@ -567,7 +569,7 @@ void CVideoThumbLoader::DetectAndAddMissingItemData(CFileItem &item)
     // check for custom stereomode setting in video settings
     CVideoSettings itemVideoSettings;
     m_videoDatabase->Open();
-    if (m_videoDatabase->GetVideoSettings(path, itemVideoSettings) && itemVideoSettings.m_StereoMode != RENDER_STEREO_MODE_OFF)
+    if (m_videoDatabase->GetVideoSettings(item, itemVideoSettings) && itemVideoSettings.m_StereoMode != RENDER_STEREO_MODE_OFF)
       stereoMode = CStereoscopicsManager::Get().ConvertGuiStereoModeToString( (RENDER_STEREO_MODE) itemVideoSettings.m_StereoMode );
     m_videoDatabase->Close();
 

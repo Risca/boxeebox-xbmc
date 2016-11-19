@@ -20,10 +20,10 @@
 
 #include "system.h"
 #ifdef HAVE_LIBBLURAY
-#include <assert.h>
 
 #include "BlurayFile.h"
 #include "URL.h"
+#include <assert.h>
 
 namespace XFILE
 {

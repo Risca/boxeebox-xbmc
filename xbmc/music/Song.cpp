@@ -23,7 +23,6 @@
 #include "utils/Variant.h"
 #include "FileItem.h"
 #include "settings/AdvancedSettings.h"
-#include "utils/StringUtils.h"
 
 using namespace std;
 using namespace MUSIC_INFO;
@@ -69,6 +68,7 @@ CSong::CSong(CFileItem& item)
   strMusicBrainzTrackID = tag.GetMusicBrainzTrackID();
   strComment = tag.GetComment();
   strCueSheet = tag.GetCueSheet();
+  strMood = tag.GetMood();
   rating = tag.GetRating();
   iYear = stTime.wYear;
   iTrack = tag.GetTrackAndDiscNumber();
@@ -117,6 +117,7 @@ void CSong::Serialize(CVariant& value) const
   value["year"] = iYear;
   value["musicbrainztrackid"] = strMusicBrainzTrackID;
   value["comment"] = strComment;
+  value["mood"] = strMood;
   value["rating"] = rating;
   value["timesplayed"] = iTimesPlayed;
   value["lastplayed"] = lastPlayed.IsValid() ? lastPlayed.GetAsDBDateTime() : "";
@@ -135,6 +136,7 @@ void CSong::Clear()
   strThumb.clear();
   strMusicBrainzTrackID.clear();
   strComment.clear();
+  strMood.clear();
   rating = '0';
   iTrack = 0;
   iDuration = 0;

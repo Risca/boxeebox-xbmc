@@ -65,6 +65,9 @@
 #include "network/httprequesthandler/HTTPJsonRpcHandler.h"
 #endif // HAS_JSONRPC
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+#include "network/httprequesthandler/HTTPPythonHandler.h"
+#endif
 #include "network/httprequesthandler/HTTPWebinterfaceHandler.h"
 #include "network/httprequesthandler/HTTPWebinterfaceAddonsHandler.h"
 #endif // HAS_WEB_INTERFACE
@@ -102,6 +105,9 @@ CNetworkServices::CNetworkServices()
   , m_httpJsonRpcHandler(*new CHTTPJsonRpcHandler)
 #endif // HAS_JSONRPC
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+  , m_httpPythonHandler(*new CHTTPPythonHandler)
+#endif
   , m_httpWebinterfaceHandler(*new CHTTPWebinterfaceHandler)
   , m_httpWebinterfaceAddonsHandler(*new CHTTPWebinterfaceAddonsHandler)
 #endif // HAS_WEB_INTERFACE
@@ -115,6 +121,9 @@ CNetworkServices::CNetworkServices()
   CWebServer::RegisterRequestHandler(&m_httpJsonRpcHandler);
 #endif // HAS_JSONRPC
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+  CWebServer::RegisterRequestHandler(&m_httpPythonHandler);
+#endif
   CWebServer::RegisterRequestHandler(&m_httpWebinterfaceAddonsHandler);
   CWebServer::RegisterRequestHandler(&m_httpWebinterfaceHandler);
 #endif // HAS_WEB_INTERFACE
@@ -136,6 +145,10 @@ CNetworkServices::~CNetworkServices()
   CJSONRPC::Cleanup();
 #endif // HAS_JSONRPC
 #ifdef HAS_WEB_INTERFACE
+#ifdef HAS_PYTHON
+  CWebServer::UnregisterRequestHandler(&m_httpPythonHandler);
+  delete &m_httpPythonHandler;
+#endif
   CWebServer::UnregisterRequestHandler(&m_httpWebinterfaceAddonsHandler);
   delete &m_httpWebinterfaceAddonsHandler;
   CWebServer::UnregisterRequestHandler(&m_httpWebinterfaceHandler);
@@ -168,7 +181,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
     {
       if (!StartWebserver())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33101), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(33101, 33100);
         return false;
       }
     }
@@ -190,7 +203,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
       // cannot disable 
       if (IsAirPlayServerRunning() || IsAirTunesServerRunning())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1259), g_localizeStrings.Get(34303), g_localizeStrings.Get(34304), "");
+        CGUIDialogOK::ShowAndGetInput(1259, 34303);
         return false;
       }
 
@@ -210,7 +223,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
       // AirPlay needs zeroconf
       if (!CSettings::Get().GetBool("services.zeroconf"))
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), g_localizeStrings.Get(33100), g_localizeStrings.Get(34302), "");
+        CGUIDialogOK::ShowAndGetInput(1273, 34302);
         return false;
       }
 #endif //HAS_ZEROCONF
@@ -219,14 +232,14 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
 #ifdef HAS_AIRTUNES
       if (!StartAirTunesServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1274), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(1274, 33100);
         return false;
       }
 #endif //HAS_AIRTUNES
       
       if (!StartAirPlayServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(1273), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(1273, 33100);
         return false;
       }      
     }
@@ -266,9 +279,11 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
       if (!StartUPnPServer())
         return false;
 
-      // always stop and restart the client if necessary
+      // always stop and restart the client and controller if necessary
       StopUPnPClient();
+      StopUPnPController();
       StartUPnPClient();
+      StartUPnPController();
     }
     else
       return StopUPnPServer();
@@ -283,9 +298,9 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
   else if (settingId == "services.upnpcontroller")
   {
     // always stop and restart
-    StopUPnPClient();
+    StopUPnPController();
     if (((CSettingBool*)setting)->GetValue())
-      return StartUPnPClient();
+      return StartUPnPController();
   }
   else
 #endif // HAS_UPNP
@@ -297,7 +312,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
     {
       if (!StartEventServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33102), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(33102, 33100);
         return false;
       }
     }
@@ -310,7 +325,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
     {
       if (!StartJSONRPCServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33103), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(33103, 33100);
         return false;
       }
     }
@@ -327,7 +342,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
 
     if (!StartEventServer())
     {
-      CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33102), "", g_localizeStrings.Get(33100), "");
+      CGUIDialogOK::ShowAndGetInput(33102, 33100);
       return false;
     }
 
@@ -347,7 +362,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
 
       if (!StartEventServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33102), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(33102, 33100);
         return false;
       }
     }
@@ -358,7 +373,7 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
     {
       if (!StartJSONRPCServer())
       {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33103), "", g_localizeStrings.Get(33100), "");
+        CGUIDialogOK::ShowAndGetInput(33103, 33100);
         return false;
       }
     }
@@ -397,7 +412,7 @@ void CNetworkServices::OnSettingChanged(const CSetting *setting)
   {
     // okey we really don't need to restart, only deinit samba, but that could be damn hard if something is playing
     // TODO - General way of handling setting changes that require restart
-    if (CGUIDialogYesNo::ShowAndGetInput(14038, 14039, 14040, -1, -1))
+    if (CGUIDialogYesNo::ShowAndGetInput(14038, 14039))
     {
       CSettings::Get().Save();
       CApplicationMessenger::Get().RestartApp();
@@ -740,8 +755,7 @@ bool CNetworkServices::StopEventServer(bool bWait, bool promptuser)
     if (server->GetNumberOfClients() > 0)
     {
       bool cancelled = false;
-      if (!CGUIDialogYesNo::ShowAndGetInput(13140, 13141, 13142, 20022,
-                                            -1, -1, cancelled, 10000)
+      if (!CGUIDialogYesNo::ShowAndGetInput(13140, 13141, cancelled, "", "", 10000)
           || cancelled)
       {
         CLog::Log(LOGNOTICE, "ES: Not stopping event server");
@@ -786,6 +800,7 @@ bool CNetworkServices::StartUPnP()
 #ifdef HAS_UPNP
   ret |= StartUPnPClient();
   ret |= StartUPnPServer();
+  ret |= StartUPnPController();
   ret |= StartUPnPRenderer();
 #endif // HAS_UPNP
   return ret;
@@ -808,11 +823,7 @@ bool CNetworkServices::StopUPnP(bool bWait)
 bool CNetworkServices::StartUPnPClient()
 {
 #ifdef HAS_UPNP
-  if (!CSettings::Get().GetBool("services.upnpcontroller") ||
-      !CSettings::Get().GetBool("services.upnpserver"))
-    return false;
-
-  CLog::Log(LOGNOTICE, "starting upnp controller");
+  CLog::Log(LOGNOTICE, "starting upnp client");
   CUPnP::GetInstance()->StartClient();
   return IsUPnPClientRunning();
 #endif // HAS_UPNP
@@ -830,11 +841,47 @@ bool CNetworkServices::IsUPnPClientRunning()
 bool CNetworkServices::StopUPnPClient()
 {
 #ifdef HAS_UPNP
-  if (!IsUPnPRendererRunning())
+  if (!IsUPnPClientRunning())
     return true;
 
   CLog::Log(LOGNOTICE, "stopping upnp client");
   CUPnP::GetInstance()->StopClient();
+
+  return true;
+#endif // HAS_UPNP
+  return false;
+}
+
+bool CNetworkServices::StartUPnPController()
+{
+#ifdef HAS_UPNP
+  if (!CSettings::Get().GetBool("services.upnpcontroller") ||
+      !CSettings::Get().GetBool("services.upnpserver"))
+    return false;
+
+  CLog::Log(LOGNOTICE, "starting upnp controller");
+  CUPnP::GetInstance()->StartController();
+  return IsUPnPControllerRunning();
+#endif // HAS_UPNP
+  return false;
+}
+
+bool CNetworkServices::IsUPnPControllerRunning()
+{
+#ifdef HAS_UPNP
+  return CUPnP::GetInstance()->IsControllerStarted();
+#endif // HAS_UPNP
+  return false;
+}
+
+bool CNetworkServices::StopUPnPController()
+{
+#ifdef HAS_UPNP
+  if (!IsUPnPControllerRunning())
+    return true;
+
+  CLog::Log(LOGNOTICE, "stopping upnp controller");
+  CUPnP::GetInstance()->StopController();
 
   return true;
 #endif // HAS_UPNP
@@ -898,10 +945,10 @@ bool CNetworkServices::IsUPnPServerRunning()
 bool CNetworkServices::StopUPnPServer()
 {
 #ifdef HAS_UPNP
-  if (!IsUPnPRendererRunning())
+  if (!IsUPnPServerRunning())
     return true;
 
-  StopUPnPClient();
+  StopUPnPController();
 
   CLog::Log(LOGNOTICE, "stopping upnp server");
   CUPnP::GetInstance()->StopServer();
