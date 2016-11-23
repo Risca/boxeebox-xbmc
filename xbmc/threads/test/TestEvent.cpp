@@ -23,7 +23,7 @@
 
 #include "threads/test/TestHelpers.h"
 
-#include <memory>
+#include <boost/shared_array.hpp>
 #include <stdio.h>
 
 using namespace XbmcThreads;
@@ -571,10 +571,10 @@ public:
   }
 };
 
-template <class W> void RunMassEventTest(std::shared_ptr<W>& m, bool canWaitOnEvent)
+template <class W> void RunMassEventTest(boost::shared_array<W>& m, bool canWaitOnEvent)
 {
-  std::shared_ptr<thread> t;
-  t.reset(new thread[NUMTHREADS], std::default_delete<thread[]>());
+  boost::shared_array<thread> t;
+  t.reset(new thread[NUMTHREADS]);
   for(size_t i=0; i<NUMTHREADS; i++)
     t[i] = thread(m[i]);
 
@@ -610,8 +610,8 @@ TEST(TestMassEvent, General)
 {
   g_event = new CEvent();
 
-  std::shared_ptr<mass_waiter> m;
-  m.reset(new mass_waiter[NUMTHREADS], std::default_delete<mass_waiter[]>());
+  boost::shared_array<mass_waiter> m;
+  m.reset(new mass_waiter[NUMTHREADS]);
 
   RunMassEventTest(m,true);
   delete g_event;
@@ -621,8 +621,8 @@ TEST(TestMassEvent, Polling)
 {
   g_event = new CEvent(true); // polling needs to avoid the auto-reset
 
-  std::shared_ptr<poll_mass_waiter> m;
-  m.reset(new poll_mass_waiter[NUMTHREADS], std::default_delete<poll_mass_waiter[]>());
+  boost::shared_array<poll_mass_waiter> m;
+  m.reset(new poll_mass_waiter[NUMTHREADS]);
 
   RunMassEventTest(m,false);
   delete g_event;
