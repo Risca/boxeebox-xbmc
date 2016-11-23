@@ -37,8 +37,6 @@
 #include "utils/XBMCTinyXML.h"
 #include "utils/XMLUtils.h"
 
-#include <algorithm>
-
 using namespace std;
 using namespace PVR;
 

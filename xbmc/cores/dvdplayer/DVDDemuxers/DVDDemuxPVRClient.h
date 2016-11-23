@@ -108,7 +108,7 @@ protected:
   #define MAX_STREAMS 100
 #endif
   CDemuxStream* m_streams[MAX_STREAMS]; // maximum number of streams that ffmpeg can handle
-  std::shared_ptr<PVR::CPVRClient> m_pvrClient;
+  boost::shared_ptr<PVR::CPVRClient> m_pvrClient;
 
 private:
   void RequestStreams();

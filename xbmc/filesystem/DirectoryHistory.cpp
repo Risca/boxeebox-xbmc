@@ -23,8 +23,6 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 
-#include <algorithm>
-
 using namespace std;
 
 const std::string& CDirectoryHistory::CPathHistoryItem::GetPath(bool filter /* = false */) const

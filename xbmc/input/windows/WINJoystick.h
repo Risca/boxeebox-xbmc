@@ -22,7 +22,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <memory>
 #include <stdint.h>
 #include "settings/lib/ISettingCallback.h"
 #include "threads/CriticalSection.h"
@@ -53,6 +52,7 @@ struct AxisConfig {
 
 typedef std::vector<AxisConfig> AxesConfig; // [<axis, isTrigger, rest state value>]
 class CRegExp;
+namespace boost { template <typename T> class shared_ptr; }
 
 // Class to manage all connected joysticks
 class CJoystick : public ISettingCallback

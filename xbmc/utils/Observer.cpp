@@ -23,8 +23,6 @@
 #include "threads/SingleLock.h"
 #include "utils/JobManager.h"
 
-#include <algorithm>
-
 using namespace std;
 
 Observer::~Observer(void)

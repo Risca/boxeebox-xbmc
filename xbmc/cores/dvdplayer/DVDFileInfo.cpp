@@ -18,8 +18,6 @@
  *
  */
 
-#include <cstdlib>
-
 #include "threads/SystemClock.h"
 #include "DVDFileInfo.h"
 #include "FileItem.h"

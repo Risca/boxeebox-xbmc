@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #include "settings/SettingControl.h"
 #include "settings/SettingCreator.h"

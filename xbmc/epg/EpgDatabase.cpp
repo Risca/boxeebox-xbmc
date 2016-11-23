@@ -17,7 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include <cstdlib>
 
 #include "dbwrappers/dataset.h"
 #include "settings/AdvancedSettings.h"

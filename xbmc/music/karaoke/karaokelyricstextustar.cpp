@@ -20,7 +20,6 @@
 
 // C++ Implementation: karaokelyricstextlrc
 
-#include <cstdlib>
 #include <math.h>
 
 #include "filesystem/File.h"

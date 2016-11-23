@@ -25,7 +25,7 @@
 #include "settings/lib/ISettingCallback.h"
 #include "utils/JobManager.h"
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 namespace EPG
 {
@@ -59,7 +59,7 @@ namespace PVR
   };
   
   class CPVRChannelGroup;
-  typedef std::shared_ptr<PVR::CPVRChannelGroup> CPVRChannelGroupPtr;
+  typedef boost::shared_ptr<PVR::CPVRChannelGroup> CPVRChannelGroupPtr;
 
   /** A group of channels */
   class CPVRChannelGroup : public Observable,

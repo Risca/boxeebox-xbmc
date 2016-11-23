@@ -23,8 +23,6 @@
   #include "config.h"
 #endif
 
-#include <algorithm>
-
 #include "Picture.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"

@@ -36,8 +36,7 @@
 #include "utils/RegExp.h"
 #include "XBIRRemote.h"
 #include "Util.h"
-
-#include <algorithm>
+#include <boost/shared_ptr.hpp>
 
 #if defined(TARGET_WINDOWS)
 #include "input/windows/WINJoystick.h"
@@ -776,7 +775,7 @@ void CButtonTranslator::MapJoystickFamily(TiXmlNode *pNode)
     {
       TiXmlNode* pName = pMember->FirstChild();
       if (pName && pName->ValueStr() != "") {
-        std::shared_ptr<CRegExp> re(new CRegExp(true, CRegExp::asciiOnly));
+        boost::shared_ptr<CRegExp> re(new CRegExp(true, CRegExp::asciiOnly));
         std::string joyRe = JoynameToRegex(pName->ValueStr());
         if (!re->RegComp(joyRe, CRegExp::StudyRegExp))
         {
@@ -810,7 +809,7 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
     joyFamilyName = joyName;    
     JoystickFamily* joyFamily = &m_joystickFamilies[joyFamilyName];
 
-    std::shared_ptr<CRegExp> re(new CRegExp(true, CRegExp::asciiOnly));
+    boost::shared_ptr<CRegExp> re(new CRegExp(true, CRegExp::asciiOnly));
     std::string joyRe = JoynameToRegex(joyname);
     if (!re->RegComp(joyRe, CRegExp::StudyRegExp))
     {
@@ -825,7 +824,7 @@ void CButtonTranslator::MapJoystickActions(int windowID, TiXmlNode *pJoystick)
       const std::string &type = pNode->ValueStr();
       if (type == "altname") {
         std::string altName = pNode->FirstChild()->ValueStr();
-        std::shared_ptr<CRegExp> altRe(new CRegExp(true, CRegExp::asciiOnly));
+        boost::shared_ptr<CRegExp> altRe(new CRegExp(true, CRegExp::asciiOnly));
         std::string altReStr = JoynameToRegex(altName);
         if (!altRe->RegComp(altReStr, CRegExp::StudyRegExp))
           CLog::Log(LOGNOTICE, "Ignoring invalid joystick altname regex: '%s'", altReStr.c_str());
@@ -939,7 +938,7 @@ std::string CButtonTranslator::JoynameToRegex(const std::string& joyName) const
   return "\\Q" + joyName + "\\E";
 }
 
-bool CButtonTranslator::AddFamilyRegex(JoystickFamily* family, std::shared_ptr<CRegExp> regex)
+bool CButtonTranslator::AddFamilyRegex(JoystickFamily* family, boost::shared_ptr<CRegExp> regex)
 {
   // even though family is a set, this does not prevent the same regex 
   // from being added twice, so we manually match on pattern equality

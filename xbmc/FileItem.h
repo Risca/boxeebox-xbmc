@@ -34,7 +34,7 @@
 #include "threads/CriticalSection.h"
 
 #include <vector>
-#include <memory>
+#include "boost/shared_ptr.hpp"
 
 namespace MUSIC_INFO
 {
@@ -44,14 +44,14 @@ class CVideoInfoTag;
 namespace EPG
 {
   class CEpgInfoTag;
-  typedef std::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
+  typedef boost::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
 }
 namespace PVR
 {
   class CPVRChannel;
   class CPVRRecording;
   class CPVRTimerInfoTag;
-  typedef std::shared_ptr<PVR::CPVRRecording> CPVRRecordingPtr;
+  typedef boost::shared_ptr<PVR::CPVRRecording> CPVRRecordingPtr;
 }
 class CPictureInfoTag;
 
@@ -495,7 +495,7 @@ private:
   \brief A shared pointer to CFileItem
   \sa CFileItem
   */
-typedef std::shared_ptr<CFileItem> CFileItemPtr;
+typedef boost::shared_ptr<CFileItem> CFileItemPtr;
 
 /*!
   \brief A vector of pointer to CFileItem

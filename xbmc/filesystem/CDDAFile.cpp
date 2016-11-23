@@ -30,8 +30,6 @@
 #include "utils/log.h"
 #include "utils/URIUtils.h"
 
-#include <algorithm>
-
 using namespace MEDIA_DETECT;
 using namespace XFILE;
 

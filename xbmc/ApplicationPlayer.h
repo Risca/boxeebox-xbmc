@@ -20,7 +20,7 @@
  *
  */
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 #include "threads/SingleLock.h"
 #include "threads/SystemClock.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
@@ -48,7 +48,7 @@ struct TextCacheStruct_t;
 
 class CApplicationPlayer
 {
-  std::shared_ptr<IPlayer> m_pPlayer;
+  boost::shared_ptr<IPlayer> m_pPlayer;
   unsigned int m_iPlayerOPSeq;  // used to detect whether an OpenFile request on player is canceled by us.
   PLAYERCOREID m_eCurrentPlayer;
 
@@ -71,7 +71,7 @@ public:
   void ClosePlayerGapless(PLAYERCOREID newCore);
   void CreatePlayer(PLAYERCOREID newCore, IPlayerCallback& callback);
   PLAYERCOREID GetCurrentPlayer() const { return m_eCurrentPlayer; }
-  std::shared_ptr<IPlayer> GetInternal() const;
+  boost::shared_ptr<IPlayer> GetInternal() const;
   int  GetPlaySpeed() const;
   bool HasPlayer() const;
   PlayBackRet OpenFile(const CFileItem& item, const CPlayerOptions& options);

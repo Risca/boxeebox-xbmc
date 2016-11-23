@@ -24,8 +24,6 @@
 #include "cores/dvdplayer/DVDCodecs/Overlay/contrib/cc_decoder708.h"
 #include "utils/log.h"
 
-#include <algorithm>
-
 class CBitstream
 {
 public:

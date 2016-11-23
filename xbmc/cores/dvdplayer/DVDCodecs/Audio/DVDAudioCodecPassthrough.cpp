@@ -25,8 +25,6 @@
 #include "settings/Settings.h"
 #include "utils/log.h"
 
-#include <algorithm>
-
 #include "cores/AudioEngine/AEFactory.h"
 
 CDVDAudioCodecPassthrough::CDVDAudioCodecPassthrough(void) :

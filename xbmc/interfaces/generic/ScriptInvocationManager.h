@@ -21,7 +21,7 @@
 
 #include <map>
 #include <set>
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #include "addons/IAddon.h"
 #include "threads/CriticalSection.h"
@@ -29,7 +29,7 @@
 class ILanguageInvocationHandler;
 class ILanguageInvoker;
 class CLanguageInvokerThread;
-typedef std::shared_ptr<CLanguageInvokerThread> CLanguageInvokerThreadPtr;
+typedef boost::shared_ptr<CLanguageInvokerThread> CLanguageInvokerThreadPtr;
 
 class CScriptInvocationManager
 {

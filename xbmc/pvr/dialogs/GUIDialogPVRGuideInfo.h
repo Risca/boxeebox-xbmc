@@ -20,12 +20,12 @@
  */
 
 #include "guilib/GUIDialog.h"
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 namespace EPG
 {
   class CEpgInfoTag;
-  typedef std::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
+  typedef boost::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
 }
 
 namespace PVR

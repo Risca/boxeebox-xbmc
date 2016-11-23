@@ -94,4 +94,4 @@ private:
   CGUIAction m_clickActions;
 };
 
-typedef std::shared_ptr<CGUIStaticItem> CGUIStaticItemPtr;
+typedef boost::shared_ptr<CGUIStaticItem> CGUIStaticItemPtr;

@@ -43,8 +43,6 @@
 #include "settings/Settings.h"
 #include "utils/LangCodeExpander.h"
 
-#include <algorithm>
-
 using namespace MUSIC_INFO;
 using namespace XFILE;
 

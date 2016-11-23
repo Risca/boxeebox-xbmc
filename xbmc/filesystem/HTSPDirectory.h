@@ -24,10 +24,10 @@
 #include "threads/CriticalSection.h"
 #include "threads/Event.h"
 #include "HTSPSession.h"
-#include <memory>
+#include "boost/shared_ptr.hpp"
 
 class CURL;
-class CFileItem; typedef std::shared_ptr<CFileItem> CFileItemPtr;
+class CFileItem; typedef boost::shared_ptr<CFileItem> CFileItemPtr;
 
 namespace HTSP
 {

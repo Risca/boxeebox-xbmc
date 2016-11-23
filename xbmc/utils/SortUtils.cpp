@@ -27,8 +27,6 @@
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
 
-#include <algorithm>
-
 using namespace std;
 
 string ArrayToString(SortAttribute attributes, const CVariant &variant, const string &seperator = " / ")

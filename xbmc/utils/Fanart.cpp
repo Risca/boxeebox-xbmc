@@ -18,9 +18,6 @@
  *
  */
 
-#include <algorithm>
-#include <functional>
-
 #include "Fanart.h"
 #include "utils/XBMCTinyXML.h"
 #include "utils/XMLUtils.h"

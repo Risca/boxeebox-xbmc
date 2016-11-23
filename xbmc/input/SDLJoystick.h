@@ -26,7 +26,6 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <memory>
 
 #define JACTIVE_BUTTON 0x00000001
 #define JACTIVE_AXIS   0x00000002
@@ -63,6 +62,7 @@ struct AxisState {
 };
 
 class CRegExp;
+namespace boost { template <typename T> class shared_ptr; }
 
 // Class to manage all connected joysticks
 // Note: 'index' always refers to indices specific to this class,

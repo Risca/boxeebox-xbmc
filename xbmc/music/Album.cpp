@@ -25,8 +25,6 @@
 #include "utils/MathUtils.h"
 #include "FileItem.h"
 
-#include <algorithm>
-
 using namespace std;
 using namespace MUSIC_INFO;
 

@@ -22,7 +22,7 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #include "dbwrappers/DatabaseQuery.h"
 #include "utils/SortUtils.h"

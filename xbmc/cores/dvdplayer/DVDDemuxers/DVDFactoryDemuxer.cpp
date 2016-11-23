@@ -125,7 +125,7 @@ CDVDDemux* CDVDFactoryDemuxer::CreateDemuxer(CDVDInputStream* pInputStream, bool
     /* Use PVR demuxer only for live streams */
     if (URIUtils::IsPVRChannel(pInputStream->GetFileName()))
     {
-      std::shared_ptr<CPVRClient> client;
+      boost::shared_ptr<CPVRClient> client;
       if (g_PVRClients->GetPlayingClient(client) &&
           client->HandlesDemuxing())
       {

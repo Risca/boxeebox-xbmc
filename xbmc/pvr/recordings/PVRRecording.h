@@ -45,7 +45,7 @@ namespace PVR
 {
   class CPVRRecording;
 
-  typedef std::shared_ptr<PVR::CPVRRecording> CPVRRecordingPtr;
+  typedef boost::shared_ptr<PVR::CPVRRecording> CPVRRecordingPtr;
 
   /*!
    * @brief Representation of a CPVRRecording unique ID.

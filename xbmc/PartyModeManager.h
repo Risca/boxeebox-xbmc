@@ -22,9 +22,9 @@
 #include <string>
 #include <vector>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
-class CFileItem; typedef std::shared_ptr<CFileItem> CFileItemPtr;
+class CFileItem; typedef boost::shared_ptr<CFileItem> CFileItemPtr;
 class CFileItemList;
 namespace PLAYLIST
 {

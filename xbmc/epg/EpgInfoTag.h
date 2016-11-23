@@ -27,7 +27,7 @@
 #include "pvr/timers/PVRTimerInfoTag.h"
 #include "pvr/recordings/PVRRecording.h"
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 #include <string>
 
 #define EPG_DEBUGGING 0
@@ -38,7 +38,7 @@ namespace EPG
   class CEpg;
 
   class CEpgInfoTag;
-  typedef std::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
+  typedef boost::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
 
   class CEpgInfoTag : public ISerializable
   {

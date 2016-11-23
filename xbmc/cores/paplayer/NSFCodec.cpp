@@ -17,7 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#include <cstdlib>
 
 #include "NSFCodec.h"
 #include "utils/log.h"

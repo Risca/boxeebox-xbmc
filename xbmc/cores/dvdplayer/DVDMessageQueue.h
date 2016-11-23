@@ -23,7 +23,6 @@
 #include "DVDMessage.h"
 #include <string>
 #include <list>
-#include <algorithm>
 #include "threads/CriticalSection.h"
 #include "threads/Event.h"
 

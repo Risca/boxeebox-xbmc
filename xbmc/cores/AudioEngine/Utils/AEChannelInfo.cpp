@@ -19,7 +19,6 @@
  */
 
 #include "AEChannelInfo.h"
-#include <algorithm>
 #include <limits>
 #include <string.h>
 #include <assert.h>

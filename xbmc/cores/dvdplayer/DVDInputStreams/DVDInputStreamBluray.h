@@ -22,7 +22,7 @@
 
 #include "DVDInputStream.h"
 #include <list>
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 extern "C"
 {
@@ -133,7 +133,7 @@ protected:
   bool                m_menu;
   bool                m_navmode;
 
-  typedef std::shared_ptr<CDVDOverlayImage> SOverlay;
+  typedef boost::shared_ptr<CDVDOverlayImage> SOverlay;
   typedef std::list<SOverlay>                 SOverlays;
 
   struct SPlane

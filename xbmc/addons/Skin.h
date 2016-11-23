@@ -152,4 +152,4 @@ protected:
 
 } /*namespace ADDON*/
 
-extern std::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;
+extern boost::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;

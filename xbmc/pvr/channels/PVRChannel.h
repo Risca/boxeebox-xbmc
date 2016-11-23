@@ -27,7 +27,7 @@
 #include "threads/CriticalSection.h"
 #include "utils/ISerializable.h"
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #define PVR_INVALID_CHANNEL_UID -1
 
@@ -35,7 +35,7 @@ namespace EPG
 {
   class CEpg;
   class CEpgInfoTag;
-  typedef std::shared_ptr<CEpgInfoTag> CEpgInfoTagPtr;
+  typedef boost::shared_ptr<CEpgInfoTag> CEpgInfoTagPtr;
 
 }
 
@@ -45,7 +45,7 @@ namespace PVR
   class CPVRChannelGroupInternal;
 
   class CPVRChannel;
-  typedef std::shared_ptr<PVR::CPVRChannel> CPVRChannelPtr;
+  typedef boost::shared_ptr<PVR::CPVRChannel> CPVRChannelPtr;
 
   typedef struct
   {

@@ -676,7 +676,7 @@ class CGUIWindow;
 namespace EPG
 {
   class CEpgInfoTag;
-  typedef std::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
+  typedef boost::shared_ptr<EPG::CEpgInfoTag> CEpgInfoTagPtr;
 }
 
 // Info Flags

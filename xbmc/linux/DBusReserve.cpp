@@ -23,7 +23,6 @@
 
 #include <dbus/dbus.h>
 #include <climits>
-#include <algorithm>
 
 #include "utils/log.h"
 

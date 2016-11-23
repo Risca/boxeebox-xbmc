@@ -20,7 +20,7 @@
  */
 
 #include "guilib/IMsgTargetCallback.h"
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #define PLAYLIST_NONE    -1
 #define PLAYLIST_MUSIC   0
@@ -28,7 +28,7 @@
 #define PLAYLIST_PICTURE 2
 
 class CAction;
-class CFileItem; typedef std::shared_ptr<CFileItem> CFileItemPtr;
+class CFileItem; typedef boost::shared_ptr<CFileItem> CFileItemPtr;
 class CFileItemList;
 
 class CVariant;

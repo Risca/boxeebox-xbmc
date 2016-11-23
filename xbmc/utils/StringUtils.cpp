@@ -33,7 +33,6 @@
 #include "utils/fstrcmp.h"
 #include "Util.h"
 #include <locale>
-#include <functional>
 
 #include <assert.h>
 #include <math.h>

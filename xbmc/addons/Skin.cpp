@@ -41,7 +41,7 @@
 using namespace std;
 using namespace XFILE;
 
-std::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;
+boost::shared_ptr<ADDON::CSkinInfo> g_SkinInfo;
 
 namespace ADDON
 {

@@ -28,7 +28,7 @@
 #include "interfaces/generic/ILanguageInvocationHandler.h"
 #include "addons/IAddon.h"
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 #include <vector>
 
 class CPythonInvoker;

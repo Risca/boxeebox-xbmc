@@ -36,7 +36,7 @@
 
 #include <cdio/cdio.h>
 #include "threads/CriticalSection.h"
-#include <memory>
+#include "boost/shared_ptr.hpp"
 #include <map>
 #include <string>
 
@@ -259,7 +259,7 @@ public:
   virtual ~CLibcdio();
 
   static void ReleaseInstance();
-  static std::shared_ptr<CLibcdio> GetInstance();
+  static boost::shared_ptr<CLibcdio> GetInstance();
 
   // libcdio is not thread safe so these are wrappers to libcdio routines
   CdIo_t* cdio_open(const char *psz_source, driver_id_t driver_id);
@@ -278,7 +278,7 @@ public:
 private:
   char* s_defaultDevice;
   CCriticalSection m_critSection;
-  static std::shared_ptr<CLibcdio> m_pInstance;
+  static boost::shared_ptr<CLibcdio> m_pInstance;
 };
 
 class CCdIoSupport
@@ -341,7 +341,7 @@ private:
   int m_nFirstAudio;      /* # of first audio track */
   int m_nNumAudio;              /* # of audio tracks */
 
-  std::shared_ptr<CLibcdio> m_cdio;
+  boost::shared_ptr<CLibcdio> m_cdio;
 };
 
 }

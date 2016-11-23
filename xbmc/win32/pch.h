@@ -41,7 +41,7 @@
 #else
 #include <d3d9types.h>
 #endif
-#include <memory>
+#include "boost/shared_ptr.hpp"
 // anything below here should be headers that very rarely (hopefully never)
 // change yet are included almost everywhere.
 /* empty */
