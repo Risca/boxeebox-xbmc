@@ -23,7 +23,6 @@
 #include "DllLoader.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
-#include <stdlib.h>
 
 #ifdef TARGET_POSIX
 #define dll_open open
