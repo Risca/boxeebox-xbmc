@@ -532,7 +532,7 @@ INFO_RET CMusicInfoScanner::ScanTags(const CFileItemList& items, CFileItemList& 
     CMusicInfoTag& tag = *pItem->GetMusicInfoTag();
     if (!tag.Loaded())
     {
-      unique_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(pItem->GetPath()));
+      auto_ptr<IMusicInfoTagLoader> pLoader (CMusicInfoTagLoaderFactory::CreateLoader(pItem->GetPath()));
       if (NULL != pLoader.get())
         pLoader->Load(pItem->GetPath(), tag);
     }

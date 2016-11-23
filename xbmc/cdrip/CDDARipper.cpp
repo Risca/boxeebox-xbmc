@@ -116,7 +116,7 @@ bool CCDDARipper::RipCD()
   {
     CFileItemPtr pItem = vecItems[i];
     CMusicInfoTagLoaderFactory factory;
-    unique_ptr<IMusicInfoTagLoader> pLoader (factory.CreateLoader(pItem->GetPath()));
+    auto_ptr<IMusicInfoTagLoader> pLoader (factory.CreateLoader(pItem->GetPath()));
     if (NULL != pLoader.get())
     {
       pLoader->Load(pItem->GetPath(), *pItem->GetMusicInfoTag()); // get tag from file

@@ -751,7 +751,7 @@ bool CGUIWindowMusicNav::GetSongsFromPlayList(const std::string& strPlayList, CF
   items.SetPath(strPlayList);
   CLog::Log(LOGDEBUG,"CGUIWindowMusicNav, opening playlist [%s]", strPlayList.c_str());
 
-  unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
+  auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
   if ( NULL != pPlayList.get())
   {
     // load it

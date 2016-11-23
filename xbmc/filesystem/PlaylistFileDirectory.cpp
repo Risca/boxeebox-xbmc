@@ -41,7 +41,7 @@ namespace XFILE
   bool CPlaylistFileDirectory::GetDirectory(const CURL& url, CFileItemList& items)
   {
     const std::string pathToUrl = url.Get();
-    unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(pathToUrl));
+    auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(pathToUrl));
     if ( NULL != pPlayList.get())
     {
       // load it
@@ -63,7 +63,7 @@ namespace XFILE
   bool CPlaylistFileDirectory::ContainsFiles(const CURL& url)
   {
     const std::string pathToUrl = url.Get();
-    unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(pathToUrl));
+    auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(pathToUrl));
     if ( NULL != pPlayList.get())
     {
       // load it

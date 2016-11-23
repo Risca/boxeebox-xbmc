@@ -619,7 +619,7 @@ void CGUIWindowMusicBase::AddItemToPlayList(const CFileItemPtr &pItem, CFileItem
   {
     if (pItem->IsPlayList())
     {
-      unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(*pItem));
+      auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(*pItem));
       if (pPlayList.get())
       {
         // load it
@@ -919,7 +919,7 @@ void CGUIWindowMusicBase::LoadPlayList(const std::string& strPlayList)
 
   // load a playlist like .m3u, .pls
   // first get correct factory to load playlist
-  unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
+  auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
   if (pPlayList.get())
   {
     // load it
