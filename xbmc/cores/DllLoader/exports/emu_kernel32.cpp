@@ -40,7 +40,6 @@
 
 #include <string.h>
 #include <vector>
-#include <stdlib.h>
 using namespace std;
 
 vector<string> m_vecAtoms;

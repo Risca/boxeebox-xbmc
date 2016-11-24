@@ -21,7 +21,6 @@
 #include <iostream>
 #include <string>
 #include <set>
-#include <algorithm>
 
 #include "utils/log.h"
 #include "system.h" // for GetLastError()

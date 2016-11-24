@@ -18,11 +18,6 @@
  *
  */
 
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <map>
-
 #include "AndroidStorageProvider.h"
 #include "android/activity/XBMCApp.h"
 #include "guilib/LocalizeStrings.h"
@@ -34,6 +29,10 @@
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <map>
 
 static const char * typeWL[] = { "vfat", "exfat", "sdcardfs", "fuse", "ntfs", "fat32", "ext3", "ext4", "esdfs" };
 static const char * mountWL[] = { "/mnt", "/Removable", "/storage" };

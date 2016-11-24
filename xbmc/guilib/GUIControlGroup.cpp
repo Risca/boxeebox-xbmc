@@ -20,8 +20,6 @@
 
 #include "GUIControlGroup.h"
 
-#include <cassert>
-
 using namespace std;
 
 CGUIControlGroup::CGUIControlGroup()

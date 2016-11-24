@@ -21,7 +21,6 @@
 #include "system.h"
 
 #ifdef HAS_DVD_DRIVE
-#include <stdlib.h>
 
 #include "Autorun.h"
 #include "Application.h"
@@ -109,7 +108,7 @@ bool CAutorun::PlayDisc(const std::string& path, bool bypassSettings, bool start
     mediaPath = g_mediaManager.GetDiscPath();
 
   const CURL pathToUrl(mediaPath);
-  std::unique_ptr<IDirectory> pDir ( CDirectoryFactory::Create( pathToUrl ));
+  auto_ptr<IDirectory> pDir ( CDirectoryFactory::Create( pathToUrl ));
   bool bPlaying = RunDisc(pDir.get(), mediaPath, nAddedToPlaylist, true, bypassSettings, startFromBeginning);
 
   if ( !bPlaying && nAddedToPlaylist > 0 )

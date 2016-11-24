@@ -22,7 +22,7 @@
 
 #include "guilib/WindowIDs.h"
 #include "threads/Thread.h"
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #include <queue>
 #include "utils/GlobalsHandling.h"
@@ -122,7 +122,7 @@ typedef struct
   int param2;
   std::string strParam;
   std::vector<std::string> params;
-  std::shared_ptr<CEvent> waitEvent;
+  boost::shared_ptr<CEvent> waitEvent;
   void* lpVoid;
 }
 ThreadMessage;

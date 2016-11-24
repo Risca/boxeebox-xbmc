@@ -28,6 +28,7 @@
 #include "utils/RegExp.h"
 
 #include <math.h>
+#include <boost/shared_ptr.hpp>
 
 #ifdef HAS_SDL_JOYSTICK
 #include <SDL2/SDL.h>

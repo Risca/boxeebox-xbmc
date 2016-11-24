@@ -26,7 +26,6 @@
 #include "utils/log.h"
 #include "settings/Settings.h"
 #include <string.h>
-#include <cassert>
 
 CAEEncoderFFmpeg::CAEEncoderFFmpeg():
   m_BitRate       (0    ),

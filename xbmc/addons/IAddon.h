@@ -18,7 +18,9 @@
 *  <http://www.gnu.org/licenses/>.
 *
 */
-#include <memory>
+#include "boost/shared_ptr.hpp"
+
+#include <boost/enable_shared_from_this.hpp>
 
 #include <map>
 #include <set>
@@ -66,13 +68,13 @@ namespace ADDON
   } TYPE;
 
   class IAddon;
-  typedef std::shared_ptr<IAddon> AddonPtr;
+  typedef boost::shared_ptr<IAddon> AddonPtr;
   class CVisualisation;
-  typedef std::shared_ptr<CVisualisation> VizPtr;
+  typedef boost::shared_ptr<CVisualisation> VizPtr;
   class CSkinInfo;
-  typedef std::shared_ptr<CSkinInfo> SkinPtr;
+  typedef boost::shared_ptr<CSkinInfo> SkinPtr;
   class CPluginSource;
-  typedef std::shared_ptr<CPluginSource> PluginPtr;
+  typedef boost::shared_ptr<CPluginSource> PluginPtr;
 
   class CAddonMgr;
   class AddonVersion;
@@ -80,7 +82,7 @@ namespace ADDON
   typedef std::map<std::string, std::string> InfoMap;
   class AddonProps;
 
-  class IAddon : public std::enable_shared_from_this<IAddon>
+  class IAddon : public boost::enable_shared_from_this<IAddon>
   {
   public:
     virtual ~IAddon() {};

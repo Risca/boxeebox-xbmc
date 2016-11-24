@@ -18,7 +18,6 @@
  *
  */
 
-#include <algorithm>
 #include <cstring>
 #include "Archive.h"
 #include "IArchivable.h"

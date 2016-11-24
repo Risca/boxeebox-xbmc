@@ -17,9 +17,6 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-
-#include <cstdlib>
-
 #include "PosixMountProvider.h"
 #include "utils/RegExp.h"
 #include "utils/URIUtils.h"

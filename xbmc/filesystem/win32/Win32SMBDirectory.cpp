@@ -41,8 +41,6 @@
 #include <lm.h>
 #pragma comment(lib, "Netapi32.lib")
 
-#include <cassert>
-
 using namespace XFILE;
 
 // local helper

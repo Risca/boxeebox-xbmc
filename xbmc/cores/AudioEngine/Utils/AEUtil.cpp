@@ -25,8 +25,6 @@
 #include "utils/log.h"
 #include "utils/TimeUtils.h"
 
-#include <cassert>
-
 extern "C" {
 #include "libavutil/channel_layout.h"
 }

@@ -40,8 +40,6 @@
 #include "settings/Settings.h"
 #include <stdlib.h>
 
-#include <algorithm>
-
 using namespace std;
 
 CLinuxTimezone::CLinuxTimezone() : m_IsDST(0)

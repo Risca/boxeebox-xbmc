@@ -49,7 +49,7 @@ bool CDVDDemuxVobsub::Open(const string& filename, int source, const string& sub
   m_Filename = filename;
   m_source = source;
 
-  unique_ptr<CDVDSubtitleStream> pStream(new CDVDSubtitleStream());
+  auto_ptr<CDVDSubtitleStream> pStream(new CDVDSubtitleStream());
   if(!pStream->Open(filename))
     return false;
 
@@ -195,7 +195,7 @@ bool CDVDDemuxVobsub::ParseDelay(SState& state, char* line)
 
 bool CDVDDemuxVobsub::ParseId(SState& state, char* line)
 {
-  unique_ptr<CStream> stream(new CStream(this));
+  auto_ptr<CStream> stream(new CStream(this));
 
   while(*line == ' ') line++;
   strncpy(stream->language, line, 2);

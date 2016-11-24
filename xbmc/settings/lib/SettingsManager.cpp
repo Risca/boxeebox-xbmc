@@ -26,7 +26,6 @@
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
 
-#include <algorithm>
 
 CSettingsManager::CSettingsManager()
   : m_initialized(false), m_loaded(false)
@@ -608,17 +607,17 @@ bool CSettingsManager::SetString(const std::string &id, const std::string &value
   return ((CSettingString*)setting)->SetValue(value);
 }
 
-std::vector< std::shared_ptr<CSetting> > CSettingsManager::GetList(const std::string &id) const
+std::vector< boost::shared_ptr<CSetting> > CSettingsManager::GetList(const std::string &id) const
 {
   CSharedLock lock(m_settingsCritical);
   CSetting *setting = GetSetting(id);
   if (setting == NULL || setting->GetType() != SettingTypeList)
-    return std::vector< std::shared_ptr<CSetting> >();
+    return std::vector< boost::shared_ptr<CSetting> >();
 
   return ((CSettingList*)setting)->GetValue();
 }
 
-bool CSettingsManager::SetList(const std::string &id, const std::vector< std::shared_ptr<CSetting> > &value)
+bool CSettingsManager::SetList(const std::string &id, const std::vector< boost::shared_ptr<CSetting> > &value)
 {
   CSharedLock lock(m_settingsCritical);
   CSetting *setting = GetSetting(id);

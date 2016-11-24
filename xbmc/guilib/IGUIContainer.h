@@ -21,9 +21,9 @@
 #pragma once
 
 #include "GUIControl.h"
-#include <memory>
+#include "boost/shared_ptr.hpp"
 
-typedef std::shared_ptr<CGUIListItem> CGUIListItemPtr;
+typedef boost::shared_ptr<CGUIListItem> CGUIListItemPtr;
 
 /*!
  \ingroup controls

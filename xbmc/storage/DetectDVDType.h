@@ -35,7 +35,7 @@
 #include "threads/CriticalSection.h"
 
 #include "threads/Thread.h"
-#include <memory>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace MEDIA_DETECT
@@ -89,7 +89,7 @@ private:
   static std::string m_diskLabel;
   static std::string m_diskPath;
 
-  std::shared_ptr<CLibcdio> m_cdio;
+  boost::shared_ptr<CLibcdio> m_cdio;
 };
 }
 #endif

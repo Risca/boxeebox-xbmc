@@ -35,7 +35,6 @@
 #include "Util.h"
 #include "LangInfo.h"
 #include <locale>
-#include <functional>
 
 #include <assert.h>
 #include <math.h>

@@ -1401,7 +1401,7 @@ CPVRChannelPtr CGUIEPGGridContainer::GetChannel(int iIndex)
 {
   if (iIndex >= 0 && (size_t) iIndex < m_channelItems.size())
   {
-    CFileItemPtr fileItem = std::static_pointer_cast<CFileItem>(m_channelItems[iIndex]);
+    CFileItemPtr fileItem = boost::static_pointer_cast<CFileItem>(m_channelItems[iIndex]);
     if (fileItem->HasPVRChannelInfoTag())
       return fileItem->GetPVRChannelInfoTag();
   }

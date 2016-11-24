@@ -22,8 +22,6 @@
 #include "Observer.h"
 #include "threads/SingleLock.h"
 
-#include <algorithm>
-
 using namespace std;
 
 Observer::~Observer(void)

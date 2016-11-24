@@ -22,8 +22,6 @@
 #include "DVDCodecs/DVDCodecs.h"
 #include "DVDStreamInfo.h"
 
-#include <algorithm>
-
 #include "cores/AudioEngine/AEFactory.h"
 
 CDVDAudioCodecPassthrough::CDVDAudioCodecPassthrough(void) :

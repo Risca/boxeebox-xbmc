@@ -22,14 +22,14 @@
 #include <string>
 #include <vector>
 #include <limits>
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #include "JSONUtils.h"
 
 namespace JSONRPC
 {
   class JSONSchemaTypeDefinition;
-  typedef std::shared_ptr<JSONSchemaTypeDefinition> JSONSchemaTypeDefinitionPtr;
+  typedef boost::shared_ptr<JSONSchemaTypeDefinition> JSONSchemaTypeDefinitionPtr;
 
   /*! 
    \ingroup jsonrpc

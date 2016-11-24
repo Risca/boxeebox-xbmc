@@ -29,8 +29,6 @@
 #include "video/VideoInfoTag.h"
 #include "guilib/LocalizeStrings.h"
 
-#include <cassert>
-
 namespace XFILE
 {
 

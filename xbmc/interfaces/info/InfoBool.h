@@ -21,7 +21,7 @@
 #pragma once
 
 #include <string>
-#include <memory>
+#include "boost/shared_ptr.hpp"
 
 class CGUIListItem;
 
@@ -84,5 +84,5 @@ private:
   bool         m_dirty;        ///< whether we need an update
 };
 
-typedef std::shared_ptr<InfoBool> InfoPtr;
+typedef boost::shared_ptr<InfoBool> InfoPtr;
 };

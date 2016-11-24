@@ -18,7 +18,6 @@
  *
  */
 
-#include <algorithm>
 #include "threads/SystemClock.h"
 #include "system.h"
 #include "threads/SingleLock.h"

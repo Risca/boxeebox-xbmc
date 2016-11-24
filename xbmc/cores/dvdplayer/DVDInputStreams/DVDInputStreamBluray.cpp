@@ -20,8 +20,6 @@
 #include "system.h"
 #ifdef HAVE_LIBBLURAY
 
-#include <functional>
-
 #include "DVDInputStreamBluray.h"
 #include "IDVDPlayer.h"
 #include "DVDCodecs/Overlay/DVDOverlay.h"

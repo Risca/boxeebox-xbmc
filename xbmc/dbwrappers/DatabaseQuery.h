@@ -22,7 +22,7 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 #define DATABASEQUERY_RULE_VALUE_SEPARATOR  " / "
 
@@ -101,8 +101,8 @@ protected:
 
 class CDatabaseQueryRuleCombination;
 
-typedef std::vector< std::shared_ptr<CDatabaseQueryRule> > CDatabaseQueryRules;
-typedef std::vector< std::shared_ptr<CDatabaseQueryRuleCombination> > CDatabaseQueryRuleCombinations;
+typedef std::vector< boost::shared_ptr<CDatabaseQueryRule> > CDatabaseQueryRules;
+typedef std::vector< boost::shared_ptr<CDatabaseQueryRuleCombination> > CDatabaseQueryRuleCombinations;
 
 class IDatabaseQueryRuleFactory
 {

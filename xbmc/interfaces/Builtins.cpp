@@ -636,7 +636,7 @@ int CBuiltins::Execute(const std::string& execString)
       AddonPtr addon;
       if (CAddonMgr::Get().GetAddon(params[0], addon, ADDON_PLUGIN))
       {
-        PluginPtr plugin = std::dynamic_pointer_cast<CPluginSource>(addon);
+        PluginPtr plugin = boost::dynamic_pointer_cast<CPluginSource>(addon);
         std::string addonid = params[0];
         std::string urlParameters;
         vector<string> parameters;
@@ -773,7 +773,7 @@ int CBuiltins::Execute(const std::string& execString)
           break;
       }
 
-      unique_ptr<CGUIViewState> state(CGUIViewState::GetViewState(containsVideo ? WINDOW_VIDEO_NAV : WINDOW_MUSIC, items));
+      auto_ptr<CGUIViewState> state(CGUIViewState::GetViewState(containsVideo ? WINDOW_VIDEO_NAV : WINDOW_MUSIC, items));
       if (state.get())
         items.Sort(state->GetSortMethod());
       else

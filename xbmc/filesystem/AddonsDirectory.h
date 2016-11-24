@@ -23,7 +23,7 @@
 #include "addons/AddonManager.h"
 
 class CURL;
-typedef std::shared_ptr<CFileItem> CFileItemPtr;
+typedef boost::shared_ptr<CFileItem> CFileItemPtr;
 
 namespace XFILE 
 {

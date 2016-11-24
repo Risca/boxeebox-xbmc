@@ -756,7 +756,7 @@ void CGUIWindowVideoBase::AddItemToPlayList(const CFileItemPtr &pItem, CFileItem
     // just an item
     if (pItem->IsPlayList())
     {
-      unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(*pItem));
+      auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(*pItem));
       if (pPlayList.get())
       {
         // load it
@@ -1479,7 +1479,7 @@ void CGUIWindowVideoBase::LoadPlayList(const std::string& strPlayList, int iPlay
 
   // load a playlist like .m3u, .pls
   // first get correct factory to load playlist
-  unique_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
+  auto_ptr<CPlayList> pPlayList (CPlayListFactory::Create(strPlayList));
   if (pPlayList.get())
   {
     // load it

@@ -30,9 +30,6 @@
 #include "utils/StringUtils.h"
 #include "interfaces/AnnouncementManager.h"
 
-#include <cassert>
-#include <algorithm>
-
 //using namespace std;
 using namespace MUSIC_INFO;
 using namespace XFILE;
@@ -461,7 +458,7 @@ bool CPlayList::LoadData(const std::string& strData)
 bool CPlayList::Expand(int position)
 {
   CFileItemPtr item = m_vecItems[position];
-  std::unique_ptr<CPlayList> playlist (CPlayListFactory::Create(*item.get()));
+  std::auto_ptr<CPlayList> playlist (CPlayListFactory::Create(*item.get()));
   if ( NULL == playlist.get())
     return false;
 

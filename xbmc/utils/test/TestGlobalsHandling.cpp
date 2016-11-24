@@ -32,6 +32,6 @@ TEST(TestGlobal, Pattern1)
 {
   EXPECT_TRUE(TestGlobalPattern1::ctorCalled);
   {
-    std::shared_ptr<TestGlobalPattern1> ptr = g_testGlobalPattern1Ref;
+    boost::shared_ptr<TestGlobalPattern1> ptr = g_testGlobalPattern1Ref;
   }
 }

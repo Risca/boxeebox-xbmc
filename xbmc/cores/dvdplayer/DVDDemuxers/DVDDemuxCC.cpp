@@ -23,8 +23,6 @@
 #include "DVDDemuxCC.h"
 #include "cores/dvdplayer/DVDCodecs/Overlay/contrib/cc_decoder708.h"
 
-#include <algorithm>
-
 class CBitstream
 {
 public:

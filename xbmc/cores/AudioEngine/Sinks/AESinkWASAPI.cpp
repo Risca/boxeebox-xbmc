@@ -21,7 +21,6 @@
 #include "AESinkWASAPI.h"
 #include <Audioclient.h>
 #include <stdint.h>
-#include <algorithm>
 
 #include "cores/AudioEngine/Utils/AEUtil.h"
 #include "settings/AdvancedSettings.h"

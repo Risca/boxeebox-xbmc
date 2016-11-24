@@ -18,7 +18,6 @@
  *
  */
 
-#include <algorithm>
 #include "threads/SystemClock.h"
 #include "DVDMessage.h"
 #include "DVDDemuxers/DVDDemuxUtils.h"
