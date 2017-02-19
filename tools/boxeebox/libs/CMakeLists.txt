@@ -629,8 +629,6 @@ ExternalProject_Add(
     BUILD_COMMAND         HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make ${PARALLEL}
     INSTALL_COMMAND       HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make install
 		COMMAND chmod 755 ${SYSROOT}/usr/local/lib/libpython2.7.so.1.0
-		#COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.py" -delete
-		#COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.pyc" -delete
     BUILD_IN_SOURCE       1
     DEPENDS               zlib expat bzip2 gdbm openssl sqlite libffi libxml2 iconv ncursesw
 )
