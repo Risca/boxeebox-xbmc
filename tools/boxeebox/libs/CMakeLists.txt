@@ -209,7 +209,8 @@ ExternalProject_Add(
     openssl
     URL                   https://www.openssl.org/source/openssl-1.0.2j.tar.gz
     URL_MD5               96322138f0b69e61b7212bc53d5e912b
-    CONFIGURE_COMMAND     CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib AR=${TARGET}-ar <SOURCE_DIR>/Configure --prefix=${SYSROOT}/usr/local shared --openssldir=/ --libdir=lib linux-elf threads enable-camellia enable-seed enable-tlsext enable-rfc3779 enable-cms enable-md2 no-krb5 no-mdc2 no-rc5 no-ec no-ec2mno-ecdh no-ecdsa no-srp
+    PATCH_COMMAND         ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cacert.pem ${SYSROOT}/usr/local/share/kodi/system/certs/cacert.pem
+    CONFIGURE_COMMAND     CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib AR=${TARGET}-ar <SOURCE_DIR>/Configure --prefix=${SYSROOT}/usr/local shared --openssldir=/ --libdir=lib linux-elf threads
     BUILD_COMMAND         make depend
     INSTALL_COMMAND       make install
     BUILD_IN_SOURCE       1
