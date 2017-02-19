@@ -599,7 +599,9 @@ export ac_cv_header_bluetooth_bluetooth_h=no
 export ac_cv_header_bluetooth_h=no
 export ac_cv_have_long_long_format=yes
 export HOSTPLATFORM=_PYTHON_HOST_PLATFORM="darwin"
-./configure --prefix=${TARGET_DIR} --host=${TARGET} --enable-shared --disable-ipv6  --build=${HOSTMACHINE} --target=${TARGET} --with-system-expat --with-system-ffi
+export CPPFLAGS=\"-I${TARGET_DIR}/include/ncursesw\"
+export LIBS=\"-lncursesw\"
+./configure --prefix=${TARGET_DIR} --host=${TARGET} --enable-shared --disable-ipv6  --build=${HOSTMACHINE} --target=${TARGET} --with-system-expat --with-system-ffi --without-cxx-main --enable-unicode=ucs4 --without-tsc --with-pymalloc --without-fpectl --disable-profiling --without-doc-strings --with-lto
 ")
 
 execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/python_configure_helper.sh)
@@ -607,7 +609,7 @@ execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/python_configure_helper.sh)
 # Note to self: diff -x generated -r -u Python-2.7.2 python | grep -v '^Only in' > /Volumes/Skivavbild/boxee-xbmc/tools/boxeebox/libs/Python-2.7.2-xcompile.patch
 ExternalProject_Add(
     python
-    URL                   http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.bz2
+    URL                   http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz
     URL_MD5               53b43534153bb2a0363f08bae8b9d990
     PATCH_COMMAND         <SOURCE_DIR>/configure
 		COMMAND make -j8 Parser/pgen python
@@ -617,8 +619,9 @@ ExternalProject_Add(
 		COMMAND chmod +x setup.py
 		COMMAND touch Include/graminit.h
 		COMMAND touch Python/graminit.c
-		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.13-crosscompile.patch
-		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.6.5-urllib.diff
+		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.13-001_xcompile.patch
+		COMMAND patch -p0 -N < ${CMAKE_SOURCE_DIR}/Python-2.6.5-urllib.diff
+		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.13-005_dont_generate_pyo_and_pyc_files.patch
     CONFIGURE_COMMAND     ${CMAKE_BINARY_DIR}/python_configure_helper.sh
 		COMMAND rm -f Include/graminit.h
 		COMMAND rm -f Python/graminit.c
@@ -626,10 +629,10 @@ ExternalProject_Add(
     BUILD_COMMAND         HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make ${PARALLEL}
     INSTALL_COMMAND       HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make install
 		COMMAND chmod 755 ${SYSROOT}/usr/local/lib/libpython2.7.so.1.0
-		COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.py" -delete
-		COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.pyc" -delete
+		#COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.py" -delete
+		#COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.pyc" -delete
     BUILD_IN_SOURCE       1
-    DEPENDS               zlib expat bzip2 gdbm openssl sqlite libffi libxml2 iconv
+    DEPENDS               zlib expat bzip2 gdbm openssl sqlite libffi libxml2 iconv ncursesw
 )
 
 ExternalProject_Add(
