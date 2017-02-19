@@ -237,8 +237,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     expat
-    URL                   http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download
-    URL_MD5               dd7dab7a5fea97d2a6a43f511449b7cd
+    URL                   https://sourceforge.net/projects/expat/files/expat/2.2.0/expat-2.2.0.tar.bz2/download
+    URL_MD5               2f47841c829facb346eb6e3fab5212e2
     CONFIGURE_COMMAND     ${BASIC_CONF}
     DEPENDS               zlib iconv ncurses
 )
