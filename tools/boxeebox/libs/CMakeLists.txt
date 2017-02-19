@@ -54,6 +54,18 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
+    ncursesw
+    URL                   http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz
+    URL_MD5               8cb9c412e5f2d96bc6f459aa8c6282a1
+    PATCH_COMMAND         patch -p1 < ${CMAKE_SOURCE_DIR}/ncurses-20140308-20140323.patch
+      COMMAND             patch -p1 < ${CMAKE_SOURCE_DIR}/ncurses-gcc-5.patch
+    CONFIGURE_COMMAND     ${BASIC_CONF} --with-shared --with-abi-version=5  --without-cxx-binding --enable-widec --with-pkg-config-libdir=${SYSROOT}/usr/local/lib/pkgconfig --enable-pc-files
+    BUILD_COMMAND         make
+    INSTALL_COMMAND       make install
+    DEPENDS               zlib iconv ncurses
+)
+
+ExternalProject_Add(
     yasm
     URL                   http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
     URL_MD5               4cfc0686cf5350dd1305c4d905eb55a6
