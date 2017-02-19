@@ -6,7 +6,7 @@ set(BASIC_CONF <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --
 set(BASIC_CMAKE CFLAGS=-I${TARGET_DIR}/include CC=${TARGET}-gcc CXX=${TARGET}-g++ RANLIB=${TARGET}-ranlib cmake -DPKG_CONFIG_EXECUTABLE=${TARGET}-pkg-config -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_INSTALL_PREFIX=${TARGET_DIR} -DZLIB_ROOT=${SYSROOT}/usr -DZLIB_LIBRARIES=${SYSROOT}/usr/lib/libz.so -DZLIB_INCLUDE_DIRS=${SYSROOT}/usr/include <SOURCE_DIR>)
 set(ENABLE_MYSQL ON CACHE BOOL "Whether to build with mysql support or not")
 
-set(PYTHON_VERSION 2.7.2)
+set(PYTHON_VERSION 2.7.13)
 
 find_package(PythonInterp)
 
@@ -574,9 +574,18 @@ export LDFLAGS=\"-L${TARGET_DIR}/lib -L${SYSROOT}/usr/lib\"
 export MACHDEP=Linux
 export ac_sys_system=Linux
 export ac_cv_prog_AR=${TARGET}-ar
+export ac_cv_file_dev_ptc=no
+export ac_cv_file_dev_ptmx=yes
 export ac_cv_file__dev_ptmx=no
 export ac_cv_file__dev_ptc=no
 export enable_toolbox_glue=no
+export ac_cv_func_lchflags_works=no
+export ac_cv_func_chflags_works=no
+export ac_cv_buggy_getaddrinfo=no
+export ac_cv_header_bluetooth_bluetooth_h=no
+export ac_cv_header_bluetooth_h=no
+export ac_cv_have_long_long_format=yes
+export HOSTPLATFORM=_PYTHON_HOST_PLATFORM="darwin"
 ./configure --prefix=${TARGET_DIR} --host=${TARGET} --enable-shared --disable-ipv6  --build=${HOSTMACHINE} --target=${TARGET} --with-system-expat --with-system-ffi
 ")
 
@@ -586,23 +595,26 @@ execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/python_configure_helper.sh)
 ExternalProject_Add(
     python
     URL                   http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.bz2
-    URL_MD5               ba7b2f11ffdbf195ee0d111b9455a5bd
+    URL_MD5               53b43534153bb2a0363f08bae8b9d990
     PATCH_COMMAND         <SOURCE_DIR>/configure
 		COMMAND make -j8 Parser/pgen python
 		COMMAND mv python hostpython
 		COMMAND mv Parser/pgen Parser/hostpgen
 		COMMAND make distclean
-		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.2-xcompile.patch
-		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.2-default-is-optimized.patch
-		COMMAND sed -e "13735,13738d" -i.bak configure
-		COMMAND sed -e "185d" -i.bak Makefile.pre.in
-		COMMAND sed -e "954,959d" -i.bak Makefile.pre.in
+		COMMAND chmod +x setup.py
+		COMMAND touch Include/graminit.h
+		COMMAND touch Python/graminit.c
+		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.7.13-crosscompile.patch
+		COMMAND patch -p1 -N < ${CMAKE_SOURCE_DIR}/Python-2.6.5-urllib.diff
     CONFIGURE_COMMAND     ${CMAKE_BINARY_DIR}/python_configure_helper.sh
 		COMMAND rm -f Include/graminit.h
 		COMMAND rm -f Python/graminit.c
 		COMMAND Parser/hostpgen <SOURCE_DIR>/Grammar/Grammar Include/graminit.h Python/graminit.c
     BUILD_COMMAND         HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make ${PARALLEL}
     INSTALL_COMMAND       HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make install
+		COMMAND chmod 755 ${SYSROOT}/usr/local/lib/libpython2.7.so.1.0
+		COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.py" -delete
+		COMMAND find  ${SYSROOT}/usr/local/lib/python2.7 -type f -name "*.pyc" -delete
     BUILD_IN_SOURCE       1
     DEPENDS               zlib expat bzip2 gdbm openssl sqlite libffi libxml2 iconv
 )
