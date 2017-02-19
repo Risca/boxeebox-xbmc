@@ -163,6 +163,7 @@ set(libs
 	libnettle.so.4
 	libiconv.so.2
 	libspeex.so.1
+	libncursesw.so.5
 )
 
 foreach(lib ${libs})
