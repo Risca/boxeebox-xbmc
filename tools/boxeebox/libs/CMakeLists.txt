@@ -23,7 +23,7 @@ include(ExternalProject)
 
 ExternalProject_Add(
     zlib
-    URL                   http://zlib.net/zlib-1.2.8.tar.gz
+    URL                   https://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz/download
     URL_MD5               44d667c142d7cda120332623eab69f40
     CONFIGURE_COMMAND     CROSS_PREFIX=${TARGET} AR=${TARGET}-ar CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib <SOURCE_DIR>/configure --uname=Linux --prefix=${SYSROOT}/usr
     BUILD_COMMAND         ""
