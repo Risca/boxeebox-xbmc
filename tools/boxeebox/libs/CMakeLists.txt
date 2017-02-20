@@ -511,10 +511,9 @@ ExternalProject_Add(
 ExternalProject_Add(
     nfs
     GIT_REPOSITORY        https://github.com/sahlberg/libnfs.git
-    GIT_TAG               68b0298102b510521e0c16b1f41d4bbfb0dd99e8
+    GIT_TAG               6923a9926266bc51eac4e87003c67d4be0dd7861#Fix memory leak of nested mount list
     UPDATE_COMMAND        ""
-    PATCH_COMMAND         patch -p1 < ${CMAKE_SOURCE_DIR}/libnfs-patches/0001-Sequential-Readahead-Mode.patch
-	    COMMAND           ./bootstrap
+    PATCH_COMMAND         ./bootstrap
     CONFIGURE_COMMAND     ${BASIC_CONF} --disable-examples --disable-tirpc
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
