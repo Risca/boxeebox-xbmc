@@ -29,7 +29,6 @@
 
 #include <vector>
 #include <climits>
-#include <cassert>
 
 #ifdef TARGET_POSIX
 #include <errno.h>
@@ -226,7 +225,6 @@ CCurlFile::CReadState::CReadState()
   m_multiHandle = NULL;
   m_overflowBuffer = NULL;
   m_overflowSize = 0;
-  m_stillRunning = 0;
   m_filePos = 0;
   m_fileSize = 0;
   m_bufferSize = 0;
@@ -376,9 +374,6 @@ CCurlFile::~CCurlFile()
 }
 
 CCurlFile::CCurlFile()
- : m_writeOffset(0)
- , m_overflowBuffer(NULL)
- , m_overflowSize(0)
 {
   g_curlInterface.Load(); // loads the curl dll and resolves exports etc.
   m_opened = false;
@@ -1120,7 +1115,7 @@ bool CCurlFile::Exists(const CURL& url)
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_NOBODY, 1);
   g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_WRITEDATA, NULL); /* will cause write failure*/
 
-  if(url2.IsProtocol("ftp"))
+  if(url2.IsProtocol("ftp") || url2.IsProtocol("ftps"))
   {
     g_curlInterface.easy_setopt(m_state->m_easyHandle, CURLOPT_FILETIME, 1);
     // nocwd is less standard, will return empty list for non-existed remote dir on some ftp server, avoid it.
@@ -1563,7 +1558,7 @@ bool CCurlFile::CReadState::FillBuffer(unsigned int want)
         do
         {
           unsigned int time_left = endTime.MillisLeft();
-          struct timeval t = { (int)time_left / 1000, ((int)time_left % 1000) * 1000 };
+          struct timeval t = { time_left / 1000, (time_left % 1000) * 1000 };
 
           // Wait until data is available or a timeout occurs.
           rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &t);
