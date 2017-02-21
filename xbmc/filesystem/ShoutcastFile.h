@@ -64,7 +64,6 @@ protected:
 
   CFileCache* m_cacheReader;
   CEvent m_tagChange;
-  CCriticalSection m_tagSection;
   int64_t m_tagPos;
 };
 }
