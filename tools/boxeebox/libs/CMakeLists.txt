@@ -313,10 +313,10 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     taglib
-    URL                   http://taglib.github.io/releases/taglib-1.8.tar.gz
-    URL_MD5               dcb8bd1b756f2843e18b1fdf3aaeee15
-    PATCH_COMMAND         sed -e "54,61d" -i.bak taglib/toolkit/taglib.h
-    CONFIGURE_COMMAND     ${BASIC_CMAKE} -DENABLE_STATIC=ON -DENABLE_STATIC_RUNTIME=ON
+    URL                   http://taglib.github.io/releases/taglib-1.11.1.tar.gz
+    URL_MD5               cee7be0ccfc892fa433d6c837df9522a
+    PATCH_COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/ID3v2Lookup.patch
+    CONFIGURE_COMMAND     ${BASIC_CMAKE} -DBUILD_SHARED_LIBS=OFF
     DEPENDS               zlib pcre iconv
 )
 
