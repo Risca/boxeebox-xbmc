@@ -22,7 +22,7 @@
 // FileShoutcast.cpp: implementation of the CShoutcastFile class.
 //
 //////////////////////////////////////////////////////////////////////
-
+#include "threads/SystemClock.h"
 #include "system.h"
 #include "ShoutcastFile.h"
 #include "guilib/GUIWindowManager.h"
@@ -30,14 +30,15 @@
 #include "utils/RegExp.h"
 #include "utils/HTMLUtil.h"
 #include "utils/CharsetConverter.h"
-#include "messaging/ApplicationMessenger.h"
+#include "utils/TimeUtils.h"
+#include "ApplicationMessenger.h"
+#include "utils/log.h"
 #include "FileCache.h"
-#include "FileItem.h"
 #include <climits>
 
 using namespace XFILE;
 using namespace MUSIC_INFO;
-using namespace KODI::MESSAGING;
+
 
 CShoutcastFile::CShoutcastFile() :
   IFile(), CThread("ShoutcastFile")
@@ -206,7 +207,7 @@ void CShoutcastFile::Process()
       while (!m_bStop && m_cacheReader->GetPosition() < m_tagPos)
         Sleep(20);
       CSingleLock lock(m_tagSection);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 1,-1, static_cast<void*>(new CFileItem(m_tag)));
+      CApplicationMessenger::Get().SetCurrentSongTag(m_tag);
       m_tagPos = 0;
     }
   }
