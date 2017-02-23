@@ -29,6 +29,10 @@ CRASHLOG_DIR=${CRASHLOG_DIR:-$HOME}
 USERDATA_DIR="${HOME}/.${bin_name}"
 
 
+# Fix wasting RAM due to fragmentation
+export MALLOC_MMAP_THRESHOLD_=131072
+
+
 # Check for some options used by this script
 while [ "$#" -gt "0" ]
 do
