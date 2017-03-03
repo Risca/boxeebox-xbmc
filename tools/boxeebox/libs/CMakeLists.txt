@@ -808,8 +808,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     speex
-    URL                   http://downloads.us.xiph.org/releases/speex/speex-1.2rc2.tar.gz
-    URL_MD5               6ae7db3bab01e1d4b86bacfa8ca33e81
+    URL                   http://downloads.us.xiph.org/releases/speex/speex-1.2.0.tar.gz
+    URL_MD5               8ab7bb2589110dfaf0ed7fa7757dc49c
     CONFIGURE_COMMAND     ${BASIC_CONF}
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
