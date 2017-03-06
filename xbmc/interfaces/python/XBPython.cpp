@@ -494,8 +494,9 @@ bool XBPython::InitializeEngine()
 
 
 // Darwin packs .pyo files, we need PYTHONOPTIMIZE on in order to load them.
-#if defined(TARGET_DARWIN) && !defined(TARGET_BOXEE)
+#if defined(TARGET_BOXEE)
    setenv("PYTHONOPTIMIZE", "1", 1);
+   setenv("SSL_CERT_FILE", CSpecialProtocol::TranslatePath("special://xbmc/system/certs/cacert.pem").c_str(), 1);
 #endif
       // Info about interesting python envvars available
       // at http://docs.python.org/using/cmdline.html#environment-variables

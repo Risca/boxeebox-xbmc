@@ -610,7 +610,8 @@ case $host in
      build_shared_lib=yes    
      ;;
   i*86*-linux-gnu*|i*86*-*-linux-uclibc*)
-     ARCH="i486-linux"
+	    target_platform=target_boxee
+	    ARCH="i486-linux"
 	    use_arch="x86"
 	    use_cpu="i686"
 	    use_gles=yes
