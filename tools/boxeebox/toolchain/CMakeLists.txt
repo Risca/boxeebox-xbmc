@@ -14,7 +14,7 @@ string(REPLACE "\n" "" HOSTMACHINE ${HOSTMACHINE})
 
 ExternalProject_Add(
 	kernel
-	URL					ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-2.6.28.8.tar.bz2
+	URL					http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.28.8.tar.bz2
 	URL_MD5				8440a90637cff154195895743ef498a1
 	PATCH_COMMAND		cp ${CMAKE_SOURCE_DIR}/kernel.config .config
 	CONFIGURE_COMMAND	""
