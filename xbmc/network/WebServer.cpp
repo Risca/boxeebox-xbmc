@@ -163,7 +163,7 @@ int CWebServer::AnswerToConnection(void *cls, struct MHD_Connection *connection,
   {
     // Look for a IHTTPRequestHandler which can
     // take care of the current request
-    for (vector<IHTTPRequestHandler *>::const_iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); it++)
+    for (vector<IHTTPRequestHandler *>::const_iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); ++it)
     {
       IHTTPRequestHandler *requestHandler = *it;
       if (requestHandler->CheckHTTPRequest(request))
@@ -260,7 +260,7 @@ int CWebServer::AnswerToConnection(void *cls, struct MHD_Connection *connection,
     // requests, but let's handle it anyway
     else
     {
-      for (vector<IHTTPRequestHandler *>::const_iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); it++)
+      for (vector<IHTTPRequestHandler *>::const_iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); ++it)
       {
         IHTTPRequestHandler *requestHandler = *it;
         if (requestHandler->CheckHTTPRequest(request))
@@ -353,7 +353,7 @@ int CWebServer::HandleRequest(IHTTPRequestHandler *handler, const HTTPRequest &r
   }
 
   multimap<string, string> header = handler->GetHTTPResponseHeaderFields();
-  for (multimap<string, string>::const_iterator it = header.begin(); it != header.end(); it++)
+  for (multimap<string, string>::const_iterator it = header.begin(); it != header.end(); ++it)
     AddHeader(response, it->first.c_str(), it->second.c_str());
 
   MHD_queue_response(request.connection, responseCode, response);
@@ -395,7 +395,7 @@ int CWebServer::CreateFileDownloadResponse(struct MHD_Connection *connection, co
   multimap<string, string> headers;
   if (GetRequestHeaderValues(connection, MHD_HEADER_KIND, headers) > 0)
   {
-    for (multimap<string, string>::const_iterator header = headers.begin(); header != headers.end(); header++)
+    for (multimap<string, string>::const_iterator header = headers.begin(); header != headers.end(); ++header)
       CLog::Log(LOGDEBUG, "webserver  [IN] %s: %s", header->first.c_str(), header->second.c_str());
   }
 #endif
@@ -510,7 +510,7 @@ int CWebServer::CreateFileDownloadResponse(struct MHD_Connection *connection, co
             context->boundaryWithHeader += "Content-Type: " + context->contentType + "\r\n";
 
           // for every range, we need to add a boundary with header
-          for (HttpRanges::const_iterator range = context->ranges.begin(); range != context->ranges.end(); range++)
+          for (HttpRanges::const_iterator range = context->ranges.begin(); range != context->ranges.end(); ++range)
           {
             // we need to temporarily add the Content-Range header to the
             // boundary to be able to determine the length
@@ -860,7 +860,7 @@ void CWebServer::RegisterRequestHandler(IHTTPRequestHandler *handler)
   if (handler == NULL)
     return;
 
-  for (vector<IHTTPRequestHandler *>::iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); it++)
+  for (vector<IHTTPRequestHandler *>::iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); ++it)
   {
     if (*it == handler)
       return;
@@ -880,7 +880,7 @@ void CWebServer::UnregisterRequestHandler(IHTTPRequestHandler *handler)
   if (handler == NULL)
     return;
 
-  for (vector<IHTTPRequestHandler *>::iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); it++)
+  for (vector<IHTTPRequestHandler *>::iterator it = m_requestHandlers.begin(); it != m_requestHandlers.end(); ++it)
   {
     if (*it == handler)
     {
@@ -962,7 +962,7 @@ int64_t CWebServer::ParseRangeHeader(const std::string &rangeHeaderValue, int64_
   string rangesValue = rangeHeaderValue.substr(6);
   // split the value of the "Range" header by ","
   vector<string> rangeValues = StringUtils::Split(rangesValue, ",");
-  for (vector<string>::const_iterator range = rangeValues.begin(); range != rangeValues.end(); range++)
+  for (vector<string>::const_iterator range = rangeValues.begin(); range != rangeValues.end(); ++range)
   {
     // there must be a "-" in the range definition
     if (range->find("-") == string::npos)
