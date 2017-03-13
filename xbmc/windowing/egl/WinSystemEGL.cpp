@@ -298,7 +298,7 @@ bool CWinSystemEGL::CreateNewWindow(const CStdString& name, bool fullScreen, RES
 
   CSingleLock lock(m_resourceSection);
   // tell any shared resources
-  for (std::vector<IDispResource *>::iterator i = m_resources.begin(); i != m_resources.end(); i++)
+  for (std::vector<IDispResource *>::iterator i = m_resources.begin(); i != m_resources.end(); ++i)
     (*i)->OnResetDevice();
 
   return true;
@@ -375,7 +375,7 @@ void CWinSystemEGL::UpdateResolutions()
   RESOLUTION ResDesktop = RES_INVALID;
   RESOLUTION res_index  = RES_DESKTOP;
 
-  for (size_t i = 0; i < resolutions.size(); i++)
+  for (size_t i = 0; i < resolutions.size(); ++i)
   {
     // if this is a new setting,
     // create a new empty setting to fill in.
@@ -532,7 +532,7 @@ bool CWinSystemEGL::Support3D(int width, int height, uint32_t mode) const
     int searchHeight = curr.iScreenHeight;
 
     // only search the custom resolutions
-    for (unsigned int i = (int)RES_DESKTOP; i < CDisplaySettings::Get().ResolutionInfoSize(); i++)
+    for (unsigned int i = (int)RES_DESKTOP; i < CDisplaySettings::Get().ResolutionInfoSize(); ++i)
     {
       RESOLUTION_INFO res = CDisplaySettings::Get().GetResolutionInfo(i);
       if(res.iScreenWidth == searchWidth && res.iScreenHeight == searchHeight && (res.dwFlags & mode))

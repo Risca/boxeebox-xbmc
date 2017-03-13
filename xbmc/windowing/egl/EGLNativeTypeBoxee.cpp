@@ -180,7 +180,7 @@ static void RESOLUTION_INFO_to_tvmode(const RESOLUTION_INFO &res, gdl_tvmode_t *
   const float vals[] = {23.98, 24, 25, 29.97, 30, 50, 59.94, 60, 48, 47.96};
   float best = 1000;
   int bi = 0;
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < 10; ++i)
   {
     float curr = fabs(res.fRefreshRate-vals[i]);
     if (curr < best)
@@ -341,7 +341,7 @@ bool CEGLNativeTypeBoxee::SetNativeResolution(const RESOLUTION_INFO &res)
 
 bool CEGLNativeTypeBoxee::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions)
 {
-  for (int i = 0; true; i++)
+  for (int i = 0; true; ++i)
   {
     RESOLUTION_INFO res;
     gdl_tvmode_t tvmode;
