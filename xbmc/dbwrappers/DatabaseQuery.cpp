@@ -199,21 +199,21 @@ bool CDatabaseQueryRule::Save(CVariant &obj) const
 
 CDatabaseQueryRule::SEARCH_OPERATOR CDatabaseQueryRule::TranslateOperator(const char *oper)
 {
-  for (unsigned int i = 0; i < NUM_OPERATORS; i++)
+  for (unsigned int i = 0; i < NUM_OPERATORS; ++i)
     if (StringUtils::EqualsNoCase(oper, operators[i].string)) return operators[i].op;
   return OPERATOR_CONTAINS;
 }
 
 std::string CDatabaseQueryRule::TranslateOperator(SEARCH_OPERATOR oper)
 {
-  for (unsigned int i = 0; i < NUM_OPERATORS; i++)
+  for (unsigned int i = 0; i < NUM_OPERATORS; ++i)
     if (oper == operators[i].op) return operators[i].string;
   return "contains";
 }
 
 std::string CDatabaseQueryRule::GetLocalizedOperator(SEARCH_OPERATOR oper)
 {
-  for (unsigned int i = 0; i < NUM_OPERATORS; i++)
+  for (unsigned int i = 0; i < NUM_OPERATORS; ++i)
     if (oper == operators[i].op) return g_localizeStrings.Get(operators[i].localizedString);
   return g_localizeStrings.Get(16018);
 }
@@ -513,7 +513,7 @@ bool CDatabaseQueryRuleCombination::Save(CVariant &obj) const
   CVariant comboArray(CVariant::VariantTypeArray);
   if (!m_combinations.empty())
   {
-    for (CDatabaseQueryRuleCombinations::const_iterator combo = m_combinations.begin(); combo != m_combinations.end(); combo++)
+    for (CDatabaseQueryRuleCombinations::const_iterator combo = m_combinations.begin(); combo != m_combinations.end(); ++combo)
     {
       CVariant comboObj(CVariant::VariantTypeObject);
       if ((*combo)->Save(comboObj))
@@ -523,7 +523,7 @@ bool CDatabaseQueryRuleCombination::Save(CVariant &obj) const
   }
   if (!m_rules.empty())
   {
-    for (CDatabaseQueryRules::const_iterator rule = m_rules.begin(); rule != m_rules.end(); rule++)
+    for (CDatabaseQueryRules::const_iterator rule = m_rules.begin(); rule != m_rules.end(); ++rule)
     {
       CVariant ruleObj(CVariant::VariantTypeObject);
       if ((*rule)->Save(ruleObj))

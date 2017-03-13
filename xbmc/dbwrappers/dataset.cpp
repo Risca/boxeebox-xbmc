@@ -39,15 +39,16 @@ using namespace std;
 namespace dbiplus {
 //************* Database implementation ***************
 
-Database::Database() {
+Database::Database():
+  error(), //S_NO_CONNECTION,
+  host(),
+  port(),
+  db(),
+  login(),
+  passwd(),
+  sequence_table("db_sequence")
+{
   active = false;	// No connection yet
-  error = "";//S_NO_CONNECTION;
-  host = "";
-  port = "";
-  db = "";
-  login = "";
-  passwd = "";
-  sequence_table = "db_sequence";
 }
 
 Database::~Database() {
@@ -71,11 +72,9 @@ int Database::connectFull(const char *newHost, const char *newPort, const char *
 
 string Database::prepare(const char *format, ...)
 {
-  string result = "";
-
   va_list args;
   va_start(args, format);
-  result = vprepare(format, args);
+  string result = vprepare(format, args);
   va_end(args);
 
   return result;
@@ -83,7 +82,9 @@ string Database::prepare(const char *format, ...)
 
 //************* Dataset implementation ***************
 
-Dataset::Dataset() {
+Dataset::Dataset():
+  select_sql("")
+{
 
   db = NULL;
   haveError = active = false;
@@ -91,7 +92,6 @@ Dataset::Dataset() {
   fbof = feof = true;
   autocommit = true;
 
-  select_sql = "";
 
   fields_object = new Fields();
 
@@ -100,7 +100,9 @@ Dataset::Dataset() {
 
 
 
-Dataset::Dataset(Database *newDb) {
+Dataset::Dataset(Database *newDb):
+  select_sql("")
+{
 
   db = newDb;
   haveError = active = false;
@@ -108,7 +110,6 @@ Dataset::Dataset(Database *newDb) {
   fbof = feof = true;
   autocommit = true;
 
-  select_sql = "";
 
   fields_object = new Fields();
 
@@ -514,8 +515,9 @@ for (unsigned int i=0; i < fields_object->size(); i++)
 
 //************* DbErrors implementation ***************
 
-DbErrors::DbErrors() {
-  msg_ = "Unknown Database Error";
+DbErrors::DbErrors():
+  msg_("Unknown Database Error")
+{
 }
 
 
