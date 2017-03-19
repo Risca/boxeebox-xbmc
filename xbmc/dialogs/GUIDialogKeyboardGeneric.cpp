@@ -67,7 +67,6 @@ CGUIDialogKeyboardGeneric::CGUIDialogKeyboardGeneric()
   m_hiddenInput = false;
   m_keyType = LOWER;
   m_currentLayout = 0;
-  m_strHeading = "";
   m_loadType = KEEP_IN_MEMORY;
 }
 
