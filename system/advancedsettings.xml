@@ -5,5 +5,8 @@
     </video>
     <gui>
      <nofliptimeout>1000</nofliptimeout>
-    </gui>	
+    </gui>
+    <network>
+     <readbufferfactor>4.0</readbufferfactor>
+    </network> 
 </advancedsettings>
