@@ -797,7 +797,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     gnutls
-    URL                   ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.10.tar.xz
+    URL                   https://www.gnupg.org/ftp/gcrypt/gnutls/v3.3/gnutls-3.3.10.tar.xz
     URL_MD5               c0a72b2c0553fe1c4992e30835808012
     PATCH_COMMAND         patch -p0 < ${CMAKE_SOURCE_DIR}/size-max.patch   
     CONFIGURE_COMMAND     <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --build=${HOSTMACHINE} --target=${TARGET} CROSS_COMPILE=${TARGET}- LDFLAGS=-L${TARGET_DIR}/lib --enable-shared --without-p11-kit --disable-nls --enable-local-libopts GMP_CFLAGS=${TARGET_DIR}/include
