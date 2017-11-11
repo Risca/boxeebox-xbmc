@@ -231,8 +231,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libtiff
-    URL                   http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz
-    URL_MD5               051c1068e6a0627f461948c365290410
+    URL                   http://download.osgeo.org/libtiff/tiff-4.0.8.tar.gz
+    URL_MD5               2a7d1c1318416ddf36d5f6fa4600069b
     CONFIGURE_COMMAND     ${BASIC_CONF}
     DEPENDS               zlib iconv ncurses
 )
