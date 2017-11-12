@@ -70,7 +70,7 @@ export LDFLAGS=\"-L${local}/lib -lgcc -lm -ltinyxml -lgdl -liconv -lismd_core -l
 export CFLAGS=\"-DTARGET_BOXEE=1 -DTIXML_USE_STL -mmmx -msse -msse2 -msse3 -mfpmath=sse -Os -I${local}/include -DHAS_INTEL_SMD -march=i686 -m32\"
 export CXXFLAGS=\"$CFLAGS\"
 export FREETYPE2_CFLAGS=\"-I${local}/include/freetype2\"
-export PYTHON_VERSION=\"2.7.13\"
+export PYTHON_VERSION=\"2.7.14\"
 export PYTHON_NOVERSIONCHECK=\"y\"
 export PYTHON=\"${local}/bin/python\"
 export PYTHON_CPPFLAGS=\"-I${local}/include/python2.7\"
