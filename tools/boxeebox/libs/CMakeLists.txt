@@ -6,7 +6,7 @@ set(BASIC_CONF <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --
 set(BASIC_CMAKE CFLAGS=-I${TARGET_DIR}/include CC=${TARGET}-gcc CXX=${TARGET}-g++ RANLIB=${TARGET}-ranlib cmake -DPKG_CONFIG_EXECUTABLE=${TARGET}-pkg-config -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_INSTALL_PREFIX=${TARGET_DIR} -DZLIB_ROOT=${SYSROOT}/usr -DZLIB_LIBRARIES=${SYSROOT}/usr/lib/libz.so -DZLIB_INCLUDE_DIRS=${SYSROOT}/usr/include <SOURCE_DIR>)
 set(ENABLE_MYSQL ON CACHE BOOL "Whether to build with mysql support or not")
 
-set(PYTHON_VERSION 2.7.13)
+set(PYTHON_VERSION 2.7.14)
 
 find_package(PythonInterp)
 
@@ -609,7 +609,7 @@ execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/python_configure_helper.sh)
 ExternalProject_Add(
     python
     URL                   http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz
-    URL_MD5               53b43534153bb2a0363f08bae8b9d990
+    URL_MD5               1f6db41ad91d9eb0a6f0c769b8613c5b
     PATCH_COMMAND         <SOURCE_DIR>/configure
 		COMMAND make -j8 Parser/pgen python
 		COMMAND mv python hostpython
