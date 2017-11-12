@@ -673,8 +673,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libplist
-    URL                   http://www.libimobiledevice.org/downloads/libplist-1.12.tar.bz2
-    URL_MD5               8b04b0f09f2398022dcd4fba75012997
+    URL                   http://www.libimobiledevice.org/downloads/libplist-2.0.0.tar.bz2
+    URL_MD5               16fb70d869f66e23cbe140109e78b650
     CONFIGURE_COMMAND     ${BASIC_CONF} --without-cython
     BUILD_COMMAND         make CFLAGS=-I${TARGET_DIR}/include LDFLAGS=-L${TARGET_DIR}/lib
     INSTALL_COMMAND       make install
