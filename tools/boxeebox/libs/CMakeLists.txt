@@ -684,7 +684,7 @@ ExternalProject_Add(
 ExternalProject_Add(
     libshairplay
     GIT_REPOSITORY        http://github.com/juhovh/shairplay.git
-    GIT_TAG               498bc5bcdd305e04721f94a04b9f26a7da72673f
+    GIT_TAG               ce80e005908f41d0e6fde1c4a21e9cb8ee54007b
     PATCH_COMMAND         ./autogen.sh
     UPDATE_COMMAND          ""
     CONFIGURE_COMMAND     ${BASIC_CONF} --sysconfdir=/
