@@ -77,7 +77,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libgpg-error
-    URL                   ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.12.tar.bz2
+    URL                   https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.12.tar.bz2
     URL_MD5               8f0eb41a344d19ac2aa9bd101dfb9ce6
     CONFIGURE_COMMAND     ${BASIC_CONF}
     DEPENDS               zlib iconv ncurses
@@ -158,7 +158,7 @@ ExternalProject_Add(
 if(ENABLE_MYSQL)
 ExternalProject_Add(
     mysql
-    URL                   http://mysql.mirrors.pair.com/Downloads/MySQL-5.1/mysql-5.1.72.tar.gz
+    URL                   https://downloads.mysql.com/archives/get/p/23/file/mysql-5.1.72.tar.gz
     URL_MD5               ed79cd48e3e7402143548917813cdb80
     PATCH_COMMAND
         COMMAND           patch -Np1  < ${CMAKE_SOURCE_DIR}/01-mysqlclient-cross-compile.patch
@@ -199,7 +199,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     bzip2
-    URL                   http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+    URL                   https://sourceware.org/pub/bzip2/bzip2-1.0.6.tar.gz
     URL_MD5               00b516f4704d4a7cb50a1d97e6e8e15b
     PATCH_COMMAND         sed -e "s,CC=gcc,CC=${TARGET}-gcc," -e "s,RANLIB=ranlib,RANLIB=${TARGET}-ranlib," -e "s,PREFIX=/usr/local,PREFIX=${TARGET_DIR},g" -i.bak Makefile
     CONFIGURE_COMMAND     ""
@@ -350,7 +350,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     fribidi
-    URL                   http://fribidi.org/download/fribidi-0.19.6.tar.bz2
+    URL                   https://github.com/fribidi/fribidi/releases/download/0.19.6/fribidi-0.19.6.tar.bz2
     URL_MD5               ce93d862344991173dabb609bf93ca1d
     CONFIGURE_COMMAND     ${BASIC_CONF} --without-glib --disable-debug --disable-deprecated --disable-silent-rules --enable-malloc --enable-charsets --with-gnu-ld
     DEPENDS               freetype2 zlib iconv ncurses
@@ -466,8 +466,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
     libssh
-    URL                   https://red.libssh.org/attachments/download/195/libssh-0.7.3.tar.xz
-    URL_MD5               05465da8004f3258db946346213209de
+    URL                   https://git.libssh.org/projects/libssh.git/snapshot/libssh-0.7.3.tar.xz
+    URL_MD5               912588e30f6ecc62f03a525d6a40244e
     PATCH_COMMAND
     COMMAND               patch -p0 < ${CMAKE_SOURCE_DIR}/md5.patch
     COMMAND               sed -e "s,add_subdirectory\(examples\),,g" -i.bak CMakeLists.txt
