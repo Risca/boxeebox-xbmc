@@ -41,6 +41,8 @@ ExternalProject_Add(
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
 	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
+	PATCH_COMMAND		patch -p1 < ${CMAKE_SOURCE_DIR}/gcc-make-exact_log2-and-floor_log2-static-inline.patch
+		COMMAND		patch -p1 < ${CMAKE_SOURCE_DIR}/gcc-fix-mismatch-in-gnu_inline-attributes.patch
 	CONFIGURE_COMMAND	<SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-nls --without-headers --with-newlib --enable-languages=c --disable-decimal-float --disable-shared --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --enable-bootstrap  #--disable-libquadmath  --disable-libatomic
 	BUILD_COMMAND		make all-gcc ${PARALLEL}
 	INSTALL_COMMAND make install-gcc
@@ -70,6 +72,8 @@ ExternalProject_Add(
 	PREFIX 				${CMAKE_BINARY_DIR}/gcc
 	URL 				ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.bz2
 	URL_MD5 			cba410e6ff70f7d7f4be7a0267707fd0
+	PATCH_COMMAND		patch -p1 < ${CMAKE_SOURCE_DIR}/gcc-make-exact_log2-and-floor_log2-static-inline.patch
+		COMMAND		patch -p1 < ${CMAKE_SOURCE_DIR}/gcc-fix-mismatch-in-gnu_inline-attributes.patch
 	CONFIGURE_COMMAND	ac_cv_header_sys_filio_h=no <SOURCE_DIR>/configure --with-sysroot=${SYSROOT} --target=${TARGET} --prefix=${TARGET_DIR} --disable-libstdcxx-pch --enable-clocale=gnu --enable-shared --enable-threads --enable-languages=c,c++ --disable-nls --disable-multilib --disable-libgomp --disable-libmudflap --disable-libssp --disable-bootstrap --enable-lto --with-local-prefix=${TARGET_DIR} --with-native-system-header-dir=${TARGET_DIR}/include --program-prefix=${TARGET}-
 	BUILD_COMMAND 		ac_cv_header_sys_filio_h=no make ${PARALLEL}
 	DEPENDS 			glibc
