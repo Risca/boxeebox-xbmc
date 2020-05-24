@@ -523,7 +523,7 @@ ExternalProject_Add(
 ExternalProject_Add(
     rtmpdump
     GIT_REPOSITORY        git://git.ffmpeg.org/rtmpdump
-    GIT_TAG               a107cef9b392616dff54fabfd37f985ee2190a6f
+    GIT_TAG               c5f04a58fc2aeea6296ca7c44ee4734c18401aa3
     CONFIGURE_COMMAND     ""
     UPDATE_COMMAND        ""
     PATCH_COMMAND         patch -p0 < ${CMAKE_SOURCE_DIR}/rtmpdump-patches/prefix.patch
