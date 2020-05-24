@@ -746,6 +746,7 @@ if(NOT EXISTS "${TARGET_DIR}/include/EGL/egl.h")
 #pragma once
 #define EGLAPI
 #define EGLAPIENTRY
+#define EGLAPIENTRYP *
 typedef int NativeDisplayType;
 typedef void *NativeWindowType;
 typedef void *NativePixmapType;
@@ -753,6 +754,13 @@ typedef NativeDisplayType EGLNativeDisplayType;
 typedef NativePixmapType  EGLNativePixmapType;
 typedef NativeWindowType  EGLNativeWindowType;
 typedef int EGLint;
+
+/* C++ / C typecast macros for special EGL handle values */
+#if defined(__cplusplus)
+#define EGL_CAST(type, value) (static_cast<type>(value))
+#else
+#define EGL_CAST(type, value) ((type) (value))
+#endif
 ")
 	file(DOWNLOAD http://www.khronos.org/registry/egl/api/KHR/khrplatform.h ${TARGET_DIR}/include/KHR/khrplatform.h)
 endif()
