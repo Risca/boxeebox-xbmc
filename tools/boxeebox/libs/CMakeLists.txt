@@ -23,8 +23,8 @@ include(ExternalProject)
 
 ExternalProject_Add(
     zlib
-    URL                   https://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz/download
-    URL_MD5               44d667c142d7cda120332623eab69f40
+    URL                   http://zlib.net/zlib-1.2.11.tar.gz
+    URL_HASH              SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
     CONFIGURE_COMMAND     CROSS_PREFIX=${TARGET} AR=${TARGET}-ar CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib <SOURCE_DIR>/configure --uname=Linux --prefix=${SYSROOT}/usr
     BUILD_COMMAND         ""
     INSTALL_COMMAND       make ${PARALLEL} install
