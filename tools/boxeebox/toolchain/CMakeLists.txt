@@ -56,7 +56,9 @@ ExternalProject_Add(
 		COMMAND 		${CMAKE_COMMAND} -E copy elf/Makefile.new elf/Makefile
 		COMMAND 		cat configure | sed s,\ readelf\ ,\ ${TARGET_DIR}/bin/${TARGET}-readelf\ ,g > configure.new
 		COMMAND 		${CMAKE_COMMAND} -E copy configure.new configure
+		COMMAND			sed -i "s/\\(3\\.79\\*\\)/4.1* | \\1/" configure
 		COMMAND 		chmod +x configure
+		COMMAND 		patch -p1 < ${CMAKE_SOURCE_DIR}/glibc-manual-Makefile-fix.patch
 	BUILD_COMMAND		make ${PARALLEL}
 	CONFIGURE_COMMAND	CC=${TARGET}-gcc <SOURCE_DIR>/configure --build=${HOSTMACHINE} --target=${TARGET} --host=${TARGET} --disable-nls --enable-kernel=2.6.28 --prefix=/usr --with-headers=${TARGET_DIR}/include libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_ctors_header=yes CFLAGS=-O2\ -march=i686 --program-prefix=${TARGET}-
 	INSTALL_COMMAND		make ${PARALLEL} install_root=${SYSROOT} install
