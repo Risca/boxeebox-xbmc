@@ -312,15 +312,6 @@ ExternalProject_Add(
 )
 
 ExternalProject_Add(
-    taglib
-    URL                   http://taglib.github.io/releases/taglib-1.11.1.tar.gz
-    URL_MD5               cee7be0ccfc892fa433d6c837df9522a
-    PATCH_COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/ID3v2Lookup.patch
-    CONFIGURE_COMMAND     ${BASIC_CMAKE} -DBUILD_SHARED_LIBS=OFF
-    DEPENDS               zlib pcre iconv
-)
-
-ExternalProject_Add(
     libpng
     URL                   http://sourceforge.net/projects/libpng/files/libpng15/older-releases/1.5.13/libpng-1.5.13.tar.gz/download
     URL_MD5               9c5a584d4eb5fe40d0f1bc2090112c65
@@ -736,6 +727,15 @@ ExternalProject_Add(
     INSTALL_COMMAND       ./b2 include=${TARGET_DIR}/include linkflags="-L${TARGET_DIR}/lib" toolset=gcc-i686 link=static target-os=linux --without-mpi --without-context --without-log --without-python --without-coroutine ${PARALLEL} install
     BUILD_IN_SOURCE       1
     DEPENDS               zlib bzip2 iconv ncurses
+)
+
+ExternalProject_Add(
+    taglib
+    URL                   http://taglib.github.io/releases/taglib-1.11.1.tar.gz
+    URL_MD5               cee7be0ccfc892fa433d6c837df9522a
+    PATCH_COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/ID3v2Lookup.patch
+    CONFIGURE_COMMAND     ${BASIC_CMAKE} -DBUILD_SHARED_LIBS=OFF
+    DEPENDS               zlib pcre iconv boost
 )
 
 if(NOT EXISTS "${TARGET_DIR}/include/EGL/egl.h")
