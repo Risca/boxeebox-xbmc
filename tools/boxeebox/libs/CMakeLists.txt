@@ -664,6 +664,8 @@ ExternalProject_Add(
     URL                   https://github.com/GNOME/glib/archive/2.40.0.tar.gz
     URL_MD5               4e453a219faf86e51f47191a1f8cb910
     PATCH_COMMAND         patch -p1 -N < ${CMAKE_SOURCE_DIR}/glib-01-dont-build-tests.patch
+       COMMAND            patch -p1 -N < ${CMAKE_SOURCE_DIR}/glib-02-fix-missing-gobject-library-when-linking.patch
+       COMMAND            sed -e "s,m4_copy,m4_copy_force," -i.bak m4macros/glib-gettext.m4
        COMMAND            NOCONFIGURE=yes ./autogen.sh
     CONFIGURE_COMMAND     ${CMAKE_BINARY_DIR}/glib_configure_helper.sh
     BUILD_COMMAND         make

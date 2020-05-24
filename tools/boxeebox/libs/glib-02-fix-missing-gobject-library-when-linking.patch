@@ -1,0 +1,75 @@
+From 767e5bbd9cc2b6a393061253dbf5c41b98eccc48 Mon Sep 17 00:00:00 2001
+From: Jo-Philipp Wich <jow@openwrt.org>
+Date: Tue, 27 Jan 2015 22:35:24 +0100
+Subject: [PATCH] glib2: fix missing gobject library when linking
+ glib-compile-resources (#826)
+
+The automake template does not specify libgobject-2.0.la as _LDADD dependency
+for glib-compile-resources, leading to the following linker error:
+
+  .../ld: warning: libgmodule-2.0.so.0, needed by ./.libs/libgio-2.0.so, not found (try using -rpath or -rpath-link)
+  ./.libs/libgio-2.0.so: undefined reference to `g_module_supported'
+  ./.libs/libgio-2.0.so: undefined reference to `g_module_symbol'
+  ./.libs/libgio-2.0.so: undefined reference to `g_module_close'
+  ./.libs/libgio-2.0.so: undefined reference to `g_module_error'
+  ./.libs/libgio-2.0.so: undefined reference to `g_module_open'
+  collect2: error: ld returned 1 exit status
+
+This commit introduces a patch to add the missing libtool archive to the list
+of libraries to link.
+
+Due to the update of the .am file, a full autoreconf is required to update
+configure and Makefile, leading to the following error:
+
+  error: HAVE_GTK_DOC does not appear in AM_CONDITIONAL
+
+Therfore another patch is added to properly fix the conditional when using
+automake-1.15.
+
+Finally extend the copyright year in the Makefile and enable the generic
+autoreconf fixup to properly build and link glib2.
+
+Signed-off-by: Jo-Philipp Wich <jow@openwrt.org>
+diff --git a/gio/Makefile.am b/gio/Makefile.am
+--- a/gio/Makefile.am	2014-03-24 19:53:42.000000000 +0100
++++ b/gio/Makefile.am	2020-05-13 01:17:18.252266198 +0200
+@@ -693,6 +693,7 @@
+ 
+ glib_compile_resources_LDADD = libgio-2.0.la 		\
+ 	$(top_builddir)/gobject/libgobject-2.0.la	\
++	$(top_builddir)/gmodule/libgmodule-2.0.la	\
+ 	$(top_builddir)/glib/libglib-2.0.la 		\
+ 	$(NULL)
+ 
+@@ -722,6 +723,7 @@
+ 
+ gsettings_LDADD = libgio-2.0.la 			\
+ 	$(top_builddir)/gobject/libgobject-2.0.la	\
++	$(top_builddir)/gmodule/libgmodule-2.0.la	\
+ 	$(top_builddir)/glib/libglib-2.0.la		\
+ 	$(NULL)
+ gsettings_SOURCES = gsettings-tool.c
+@@ -736,6 +738,7 @@
+ gdbus_SOURCES = gdbus-tool.c
+ gdbus_LDADD = libgio-2.0.la 				\
+ 	$(top_builddir)/gobject/libgobject-2.0.la	\
++	$(top_builddir)/gmodule/libgmodule-2.0.la	\
+ 	$(top_builddir)/glib/libglib-2.0.la		\
+ 	$(NULL)
+ 
+@@ -746,6 +749,7 @@
+ gapplication_SOURCES = gapplication-tool.c
+ gapplication_LDADD = libgio-2.0.la 			\
+ 	$(top_builddir)/gobject/libgobject-2.0.la	\
++	$(top_builddir)/gmodule/libgmodule-2.0.la	\
+ 	$(top_builddir)/glib/libglib-2.0.la		\
+ 	$(NULL)
+ endif
+@@ -766,6 +770,7 @@
+ gresource_CPPFLAGS = $(LIBELF_CFLAGS) $(AM_CPPFLAGS)
+ gresource_LDADD = libgio-2.0.la				\
+ 	$(top_builddir)/gobject/libgobject-2.0.la	\
++	$(top_builddir)/gmodule/libgmodule-2.0.la	\
+ 	$(top_builddir)/glib/libglib-2.0.la		\
+ 	$(LIBELF_LIBS)
+ 
