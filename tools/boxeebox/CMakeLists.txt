@@ -81,6 +81,10 @@ ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR}/../../ ./configure --prefix=${loca
 )
 execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/kodi_configure_helper.sh)
 
+add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/../../configure
+	COMMAND PATH=$ENV{PATH}:${SYSROOT}/usr/bin cd ${CMAKE_SOURCE_DIR}/../.. && autoreconf
+)
+
 add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/../../Makefile
 	COMMAND PATH=$ENV{PATH}:${SYSROOT}/usr/bin ${CMAKE_BINARY_DIR}/kodi_configure_helper.sh
 	DEPENDS libs intel ${CMAKE_SOURCE_DIR}/../../configure
