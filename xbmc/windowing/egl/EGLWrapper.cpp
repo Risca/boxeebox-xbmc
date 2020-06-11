@@ -72,6 +72,150 @@ namespace
     delete guess;
     return NULL;
   }
+
+  /* BEGIN STOLEN CODE
+   * Code stolen from:
+   * https://gitlab.freedesktop.org/wayland/weston/-/blob/master/libweston/renderer-gl/egl-glue.c
+   */
+#define ARRAY_LENGTH(x) (sizeof((x)) / sizeof((x)[0])) // ok, I didn't steal this one ;-)
+
+  struct egl_config_print_info {
+    const EGLint *attrs;
+    unsigned attrs_count;
+    const char *prefix;
+    const char *separator;
+    int field_width;
+  };
+
+  void
+  print_egl_surface_type_bits(FILE *fp, EGLint egl_surface_type)
+  {
+    const char *sep = "";
+    unsigned i;
+
+    static const struct {
+      EGLint bit;
+      const char *str;
+    } egl_surf_bits[] = {
+      { EGL_WINDOW_BIT, "win" },
+      { EGL_PIXMAP_BIT, "pix" },
+      { EGL_PBUFFER_BIT, "pbf" },
+      { EGL_MULTISAMPLE_RESOLVE_BOX_BIT, "ms_resolve_box" },
+      { EGL_SWAP_BEHAVIOR_PRESERVED_BIT, "swap_preserved" },
+    };
+
+    for (i = 0; i < ARRAY_LENGTH(egl_surf_bits); i++) {
+      if (egl_surface_type & egl_surf_bits[i].bit) {
+        fprintf(fp, "%s%s", sep, egl_surf_bits[i].str);
+        sep = "|";
+      }
+    }
+  }
+
+  const struct egl_config_print_info config_info_ints[] = {
+#define ARRAY(...) ((const EGLint[]) { __VA_ARGS__ })
+
+          { ARRAY(EGL_CONFIG_ID), 1, "id: ", "", 3 },
+          { ARRAY(EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_ALPHA_SIZE), 4,
+            "rgba: ", " ", 1 },
+          { ARRAY(EGL_BUFFER_SIZE), 1, "buf: ", "", 2 },
+          { ARRAY(EGL_DEPTH_SIZE), 1, "dep: ", "", 2 },
+          { ARRAY(EGL_STENCIL_SIZE), 1, "stcl: ", "", 1 },
+          { ARRAY(EGL_MIN_SWAP_INTERVAL, EGL_MAX_SWAP_INTERVAL), 2,
+            "int: ", "-", 1 },
+
+#undef ARRAY
+  };
+
+  void
+  print_egl_config_ints(FILE *fp, EGLDisplay egldpy, EGLConfig eglconfig)
+  {
+    unsigned i;
+
+    for (i = 0; i < ARRAY_LENGTH(config_info_ints); i++) {
+      const struct egl_config_print_info *info = &config_info_ints[i];
+      unsigned j;
+      const char *sep = "";
+
+      fputs(info->prefix, fp);
+      for (j = 0; j < info->attrs_count; j++) {
+        EGLint value;
+
+        if (eglGetConfigAttrib(egldpy, eglconfig,
+                               info->attrs[j], &value)) {
+          fprintf(fp, "%s%*d", sep, info->field_width, value);
+        } else {
+          fprintf(fp, "%s!", sep);
+        }
+        sep = info->separator;
+      }
+
+      fputs(" ", fp);
+    }
+  }
+
+  void
+  print_egl_config_info(FILE *fp, EGLDisplay egldpy, EGLConfig eglconfig)
+  {
+    EGLint value;
+
+    print_egl_config_ints(fp, egldpy, eglconfig);
+
+    fputs("type: ", fp);
+    if (eglGetConfigAttrib(egldpy, eglconfig, EGL_SURFACE_TYPE, &value))
+      print_egl_surface_type_bits(fp, value);
+    else
+      fputs("-", fp);
+
+    fputs(" vis_id: ", fp);
+    if (eglGetConfigAttrib(egldpy, eglconfig, EGL_NATIVE_VISUAL_ID, &value)) {
+      fprintf(fp, "0x%02x", (unsigned)value);
+    } else {
+      fputs("-", fp);
+    }
+  }
+
+  void
+  log_all_egl_configs(EGLDisplay egldpy)
+  {
+    EGLint count = 0;
+    EGLConfig *configs;
+    int i;
+    char *strbuf = NULL;
+    size_t strsize = 0;
+    FILE *fp;
+
+    CLog::Log(LOGNOTICE, "All available EGLConfigs:");
+
+    if (!eglGetConfigs(egldpy, NULL, 0, &count) || count < 1)
+      return;
+
+    configs = (EGLConfig*)calloc(count, sizeof *configs);
+    if (!configs)
+      return;
+
+    if (!eglGetConfigs(egldpy, configs, count, &count))
+      return;
+
+    fp = open_memstream(&strbuf, &strsize);
+    if (!fp)
+      goto out;
+
+    for (i = 0; i < count; i++) {
+      print_egl_config_info(fp, egldpy, configs[i]);
+      fputc(0, fp);
+      fflush(fp);
+      CLog::Log(LOGNOTICE, "%s", strbuf);
+      rewind(fp);
+    }
+
+    fclose(fp);
+    free(strbuf);
+
+out:
+    free(configs);
+  }
+  /* END STOLEN CODE */
 }
 
 bool CEGLWrapper::Initialize(const std::string &implementation)
@@ -218,6 +362,8 @@ bool CEGLWrapper::ChooseConfig(EGLDisplay display, EGLint *configAttrs, EGLConfi
 {
   EGLint     configCount = 0;
   EGLConfig* configList = NULL;
+
+  log_all_egl_configs(display);
 
   // Find out how many configurations suit our needs
   EGLBoolean eglStatus = eglChooseConfig(display, configAttrs, NULL, 0, &configCount);
