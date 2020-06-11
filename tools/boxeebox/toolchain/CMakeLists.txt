@@ -94,7 +94,7 @@ ExternalProject_Add(
 	termcap
 	URL 				ftp://ftp.gnu.org/gnu/termcap/termcap-1.3.1.tar.gz
 	URL_MD5 			ffe6f86e63a3a29fa53ac645faaabdfa
-	CONFIGURE_COMMAND 	CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib <SOURCE_DIR>/configure --target=${TARGET} --prefix=${SYSROOT}/usr/local/
+	CONFIGURE_COMMAND 	CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib <SOURCE_DIR>/configure --target=${TARGET} --prefix=${SYSROOT}/usr
 	BUILD_COMMAND 		make ${PARALLEL}
 	DEPENDS 			gcc2
 )
@@ -104,7 +104,7 @@ ExternalProject_Add(
 	PREFIX 				${CMAKE_BINARY_DIR}/gdb
 	URL 				http://ftp.gnu.org/gnu/gdb/gdb-6.8a.tar.bz2
 	URL_MD5				da20d043e6729f74b909bd507bcae5c9
-	CONFIGURE_COMMAND 	LDFLAGS=-L${SYSROOT}/usr/local/lib <SOURCE_DIR>/configure --host=${TARGET} --prefix=${SYSROOT}/usr/local/ --disable-werror
+	CONFIGURE_COMMAND 	LDFLAGS=-L${SYSROOT}/usr/lib <SOURCE_DIR>/configure --host=${TARGET} --prefix=${SYSROOT}/usr --disable-werror
 	BUILD_COMMAND 		make ${PARALLEL}
 	DEPENDS 			gcc2 termcap
 )
@@ -115,7 +115,7 @@ file(WRITE "${SYSROOT}/usr/bin/${TARGET}-pkg-config" "
 
 set -e
 export PKG_CONFIG_DIR=
-export PKG_CONFIG_LIBDIR=${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig:${SYSROOT}/usr/local/lib/pkgconfig:${SYSROOT}/usr/local/share/pkgconfig
+export PKG_CONFIG_LIBDIR=${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig:${SYSROOT}/usr/lib/pkgconfig:${SYSROOT}/usr/share/pkgconfig
 export PKG_CONFIG_SYSROOT_DIR=${SYSROOT}
 
 exec pkg-config \"\$@\" | python -c \"import sys; print sys.stdin.read().replace('${SYSROOT}${SYSROOT}', '${SYSROOT}'),\" && test \${PIPESTATUS[0]} -eq 0

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(TARGET "i686-pc-linux-gnu")
-set(TARGET_DIR ${SYSROOT}/usr/local)
+set(TARGET_DIR ${SYSROOT}/usr)
 set(BASIC_CONF <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --enable-shared --disable-static --disable-nls)
 set(BASIC_CMAKE CFLAGS=-I${TARGET_DIR}/include CC=${TARGET}-gcc CXXFLAGS=-I${TARGET_DIR}/include CXX=${TARGET}-g++ RANLIB=${TARGET}-ranlib cmake -DPKG_CONFIG_EXECUTABLE=${TARGET}-pkg-config -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_INSTALL_PREFIX=${TARGET_DIR} -DZLIB_ROOT=${SYSROOT}/usr -DZLIB_LIBRARIES=${SYSROOT}/usr/lib/libz.so -DZLIB_INCLUDE_DIRS=${SYSROOT}/usr/include CMAKE_C_FLAGS <SOURCE_DIR>)
 set(ENABLE_MYSQL ON CACHE BOOL "Whether to build with mysql support or not")
@@ -59,7 +59,7 @@ ExternalProject_Add(
     URL_MD5               8cb9c412e5f2d96bc6f459aa8c6282a1
     PATCH_COMMAND         patch -p1 < ${CMAKE_SOURCE_DIR}/ncurses-20140308-20140323.patch
       COMMAND             patch -p1 < ${CMAKE_SOURCE_DIR}/ncurses-gcc-5.patch
-    CONFIGURE_COMMAND     ${BASIC_CONF} --with-shared --with-abi-version=5  --without-cxx-binding --enable-widec --with-pkg-config-libdir=${SYSROOT}/usr/local/lib/pkgconfig --enable-pc-files
+    CONFIGURE_COMMAND     ${BASIC_CONF} --with-shared --with-abi-version=5  --without-cxx-binding --enable-widec --with-pkg-config-libdir=${SYSROOT}/usr/lib/pkgconfig --enable-pc-files
     BUILD_COMMAND         make
     INSTALL_COMMAND       make install
     DEPENDS               zlib iconv ncurses
@@ -168,7 +168,7 @@ ExternalProject_Add(
         COMMAND           make -C libmysql/ install
         COMMAND           make -C scripts/ install-binSCRIPTS
         COMMAND           make -C include/ install
-        COMMAND           cp scripts/mysql_config ${SYSROOT}/usr/local/bin
+        COMMAND           cp scripts/mysql_config ${SYSROOT}/usr/bin
     DEPENDS               readline ncurses zlib iconv ncurses
 )
 endif()
@@ -221,8 +221,8 @@ ExternalProject_Add(
     openssl
     URL                   https://www.openssl.org/source/openssl-1.0.2m.tar.gz
     URL_MD5               10e9e37f492094b9ef296f68f24a7666
-    PATCH_COMMAND         ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cacert.pem ${SYSROOT}/usr/local/share/kodi/system/certs/cacert.pem
-    CONFIGURE_COMMAND     CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib AR=${TARGET}-ar <SOURCE_DIR>/Configure --prefix=${SYSROOT}/usr/local shared --openssldir=/ --libdir=lib linux-elf threads
+    PATCH_COMMAND         ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cacert.pem ${SYSROOT}/usr/share/kodi/system/certs/cacert.pem
+    CONFIGURE_COMMAND     CC=${TARGET}-gcc RANLIB=${TARGET}-ranlib AR=${TARGET}-ar <SOURCE_DIR>/Configure --prefix=${SYSROOT}/usr shared --openssldir=/ --libdir=lib linux-elf threads
     BUILD_COMMAND         make depend
     INSTALL_COMMAND       make install
     BUILD_IN_SOURCE       1
@@ -325,7 +325,7 @@ ExternalProject_Add(
     URL                   ftp://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.42.tar.gz
     URL_MD5               3b9cf0b67fc8ebc9e69f53c6bc84a88d
     PATCH_COMMAND         sed -e "s,#ifdef LINUX,#ifdef LINUX\\n#define SOCK_NONBLOCK	O_NONBLOCK\\n#define EPOLL_CLOEXEC O_CLOEXEC," -e "s,epoll_create1,epoll_create,g" -i.bak src/microhttpd/daemon.c
-    CONFIGURE_COMMAND     CFLAGS=-I{TARGET_DIR}/include LDFLAGS=-lc ac_cv_path_LIBGCRYPT_CONFIG=${SYSROOT}/usr/local/bin/ <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --disable-shared --enable-static --disable-curl --disable-https --disable-doc --disable-examples --disable-spdy
+    CONFIGURE_COMMAND     CFLAGS=-I{TARGET_DIR}/include LDFLAGS=-lc ac_cv_path_LIBGCRYPT_CONFIG=${SYSROOT}/usr/bin/ <SOURCE_DIR>/configure --prefix=${TARGET_DIR} --host=${TARGET} --disable-shared --enable-static --disable-curl --disable-https --disable-doc --disable-examples --disable-spdy
     DEPENDS               libgcrypt zlib iconv ncurses
 )
 
@@ -333,7 +333,7 @@ ExternalProject_Add(
     freetype2
     URL                   http://sourceforge.net/projects/freetype/files/freetype2/2.5.4/freetype-2.5.4.tar.gz/download
     URL_MD5               99c5ab378218218f25afcd5171898faf
-    CONFIGURE_COMMAND     ac_cv_env_LIBPNG_CFLAGS_value=-I${SYSROOT}/usr/local/include ac_cv_env_LIBPNG_LIBS_value=-L${SYSROOT}/usr/local/lib ${BASIC_CONF}
+    CONFIGURE_COMMAND     ac_cv_env_LIBPNG_CFLAGS_value=-I${SYSROOT}/usr/include ac_cv_env_LIBPNG_LIBS_value=-L${SYSROOT}/usr/lib ${BASIC_CONF}
     BUILD_COMMAND         make ${PARALLEL}
     DEPENDS               libpng zlib ncurses
 )
@@ -360,7 +360,7 @@ ExternalProject_Add(
     fontconfig
     URL                   http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.1.tar.gz
     URL_MD5               e75e303b4f7756c2b16203a57ac87eba
-    CONFIGURE_COMMAND     ${BASIC_CONF} --with-default-fonts=/usr/share/fonts/liberation --disable-libxml2 --disable-docs --with-arch=i686 ac_cv_path_FREETYPE_CONFIG=${SYSROOT}/usr/local/bin/freetype-config
+    CONFIGURE_COMMAND     ${BASIC_CONF} --with-default-fonts=/usr/share/fonts/liberation --disable-libxml2 --disable-docs --with-arch=i686 ac_cv_path_FREETYPE_CONFIG=${SYSROOT}/usr/bin/freetype-config
     DEPENDS               fribidi freetype2 zlib expat iconv ncurses
 )
 
@@ -492,7 +492,7 @@ ExternalProject_Add(
     samba
     URL                   https://ftp.samba.org/pub/samba/stable/samba-3.6.25.tar.gz
     URL_MD5               76da2fa64edd94a0188531e7ecb27c4e
-    CONFIGURE_COMMAND     CC=${TARGET}-gcc CFLAGS=-I${SYSROOT}/usr/local/include LDFLAGS=-L${SYSROOT}/usr/local/lib ${CMAKE_COMMAND} -E chdir <SOURCE_DIR>/source3 ./configure --prefix=${TARGET_DIR} --host=${TARGET} samba_cv_CC_NEGATIVE_ENUM_VALUES=yes libreplace_cv_HAVE_GETADDRINFO=no ac_cv_file__proc_sys_kernel_core_pattern=yes  samba_cv_HAVE_STAT_ST_FLAGS=no samba_cv_DARWIN_INITGROUPS=no --without-ldap --without-krb5 --without-ads --disable-cups --enable-swat=no --with-winbind=no --without-dnsupdate --without-libsmbsharemodes --without-pam --without-pam_smbpass --without-libaddns
+    CONFIGURE_COMMAND     CC=${TARGET}-gcc CFLAGS=-I${SYSROOT}/usr/include LDFLAGS=-L${SYSROOT}/usr/lib LIBS=-liconv ${CMAKE_COMMAND} -E chdir <SOURCE_DIR>/source3 ./configure --prefix=${TARGET_DIR} --host=${TARGET} samba_cv_CC_NEGATIVE_ENUM_VALUES=yes libreplace_cv_HAVE_GETADDRINFO=no ac_cv_file__proc_sys_kernel_core_pattern=yes  samba_cv_HAVE_STAT_ST_FLAGS=no samba_cv_DARWIN_INITGROUPS=no --without-ldap --without-krb5 --without-ads --disable-cups --enable-swat=no --with-winbind=no --without-dnsupdate --without-libsmbsharemodes --without-pam --without-pam_smbpass --without-libaddns
     BUILD_COMMAND         ${CMAKE_COMMAND} -E chdir <SOURCE_DIR>/source3 make ${PARALLEL} libsmbclient libtalloc libtevent libtdb
     INSTALL_COMMAND       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR>/source3 make ${PARALLEL} installlibsmbclient installlibtalloc installlibtevent installlibtdb
     BUILD_IN_SOURCE       1
@@ -519,7 +519,7 @@ ExternalProject_Add(
     UPDATE_COMMAND        ""
     PATCH_COMMAND         patch -p0 < ${CMAKE_SOURCE_DIR}/rtmpdump-patches/prefix.patch
         COMMAND           patch -p0 < ${CMAKE_SOURCE_DIR}/rtmpdump-patches/Patch.diff
-    BUILD_COMMAND         make CROSS_COMPILE=${TARGET}- SYS=posix prefix=${SYSROOT}/usr/local INC=-I${SYSROOT}/usr/local/include XLDFLAGS=-L${SYSROOT}/usr/local/lib CRYPTO=OPENSSL XLIBS=-ldl
+    BUILD_COMMAND         make CROSS_COMPILE=${TARGET}- SYS=posix prefix=${SYSROOT}/usr INC=-I${SYSROOT}/usr/include XLDFLAGS=-L${SYSROOT}/usr/lib CRYPTO=OPENSSL XLIBS=-ldl
     INSTALL_COMMAND       make install DESTDIR=${SYSROOT} 
     BUILD_IN_SOURCE       1
     DEPENDS               zlib openssl iconv ncurses
@@ -531,7 +531,7 @@ ExternalProject_Add(
     GIT_TAG               curl-7_51_0
     PATCH_COMMAND         ./buildconf
     UPDATE_COMMAND        ""
-    CONFIGURE_COMMAND     LDFLAGS=-L${SYSROOT}/usr/local/lib CFLAGS=-I${SYSROOT}/usr/local/include ${BASIC_CONF} --prefix=${SYSROOT}/usr/local --with-ssl LIBS=-lssl\ -lcrypto\ -lz\ -ldl\ -lm --with-librtmp --disable-debug --enable-optimize --enable-warnings --disable-manual --disable-curldebug --disable-ares --enable-largefile --enable-http --enable-https --enable-file--disable-ldap --disable-ldaps --disable-rtsp --enable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gophper --enable-ipv6 --enable-versioned-symbols --enable-nonblocking --enable-verbose --disable-sspi --enable-crypto-auth --enable-cookies --enable-hidden-symbols --disable-soname-bump --with-gnu-ld --without-krb4 --without-spnego --without-gssapi --with-zlib --without-egd-socket --without-polarssl --without-nss --without-ca-path --without-libssh2 --without-libidn --without-gnutls --enable-threaded-resolver
+    CONFIGURE_COMMAND     LDFLAGS=-L${SYSROOT}/usr/lib CFLAGS=-I${SYSROOT}/usr/include ${BASIC_CONF} --prefix=${SYSROOT}/usr --with-ssl LIBS=-lssl\ -lcrypto\ -lz\ -ldl\ -lm --with-librtmp --disable-debug --enable-optimize --enable-warnings --disable-manual --disable-curldebug --disable-ares --enable-largefile --enable-http --enable-https --enable-file--disable-ldap --disable-ldaps --disable-rtsp --enable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gophper --enable-ipv6 --enable-versioned-symbols --enable-nonblocking --enable-verbose --disable-sspi --enable-crypto-auth --enable-cookies --enable-hidden-symbols --disable-soname-bump --with-gnu-ld --without-krb4 --without-spnego --without-gssapi --with-zlib --without-egd-socket --without-polarssl --without-nss --without-ca-path --without-libssh2 --without-libidn --without-gnutls --enable-threaded-resolver
     BUILD_COMMAND         make
     DEPENDS               openssl zlib bzip2 rtmpdump libgcrypt iconv ncurses libgcrypt
 )
@@ -618,7 +618,7 @@ ExternalProject_Add(
 		COMMAND Parser/hostpgen <SOURCE_DIR>/Grammar/Grammar Include/graminit.h Python/graminit.c
     BUILD_COMMAND         HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make ${PARALLEL}
     INSTALL_COMMAND       HOSTPYTHON=./hostpython HOSTPGEN=./Parser/hostpgen CROSS_COMPILE_TARGET=yes HOSTARCH=${TARGET} BUILDARCH=${HOSTMACHINE} make install
-		COMMAND chmod 755 ${SYSROOT}/usr/local/lib/libpython2.7.so.1.0
+		COMMAND chmod 755 ${SYSROOT}/usr/lib/libpython2.7.so.1.0
     BUILD_IN_SOURCE       1
     DEPENDS               zlib expat bzip2 gdbm openssl sqlite libffi libxml2 iconv ncursesw
 )
@@ -683,7 +683,7 @@ ExternalProject_Add(
     CONFIGURE_COMMAND     ${BASIC_CONF} --sysconfdir=/
       BUILD_COMMAND       make
         COMMAND           make install
-    INSTALL_COMMAND       cp -P ${CMAKE_BINARY_DIR}/libshairplay-prefix/src/libshairplay/airport.key ${SYSROOT}/usr/local/lib
+    INSTALL_COMMAND       cp -P ${CMAKE_BINARY_DIR}/libshairplay-prefix/src/libshairplay/airport.key ${SYSROOT}/usr/lib
     DEPENDS               libxml2 libplist zlib iconv ncurses
 )
 

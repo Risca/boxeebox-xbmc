@@ -60,23 +60,23 @@ ExternalProject_Add(
 )
 
 
-set(local ${SYSROOT}/usr/local)
+set(prefix ${SYSROOT}/usr)
 
 file(WRITE ${CMAKE_BINARY_DIR}/kodi_configure_helper.sh
 "
 #!/bin/sh
 PF=`${SYSROOT}/usr/bin/${TARGET}-pkg-config --libs python`
-export LDFLAGS=\"-L${local}/lib -lgcc -lm -ltinyxml -lgdl -liconv -lismd_core -lismd_viddec -lismd_vidpproc -lismd_audio -lismd_vidrend -lismd_demux -lismd_bufmon -losal -lplatform_config -Wl,-rpath=${SYSROOT}/usr/local/lib -Wl,-rpath=${SYSROOT}/lib -Wl,-rpath=${SYSROOT}/usr/lib\"
-export CFLAGS=\"-DTARGET_BOXEE=1 -DTIXML_USE_STL -mmmx -msse -msse2 -msse3 -mfpmath=sse -Os -I${local}/include -DHAS_INTEL_SMD -march=i686 -m32\"
+export LDFLAGS=\"-L${prefix}/lib -lgcc -lm -ltinyxml -lgdl -liconv -lismd_core -lismd_viddec -lismd_vidpproc -lismd_audio -lismd_vidrend -lismd_demux -lismd_bufmon -losal -lplatform_config -Wl,-rpath=${SYSROOT}/usr/lib -Wl,-rpath=${SYSROOT}/lib -Wl,-rpath=${SYSROOT}/usr/lib\"
+export CFLAGS=\"-DTARGET_BOXEE=1 -DTIXML_USE_STL -mmmx -msse -msse2 -msse3 -mfpmath=sse -Os -I${prefix}/include -DHAS_INTEL_SMD -march=i686 -m32\"
 export CXXFLAGS=\"$CFLAGS\"
-export FREETYPE2_CFLAGS=\"-I${local}/include/freetype2\"
+export FREETYPE2_CFLAGS=\"-I${prefix}/include/freetype2\"
 export PYTHON_VERSION=\"2.7.14\"
 export PYTHON_NOVERSIONCHECK=\"y\"
-export PYTHON=\"${local}/bin/python\"
-export PYTHON_CPPFLAGS=\"-I${local}/include/python2.7\"
+export PYTHON=\"${prefix}/bin/python\"
+export PYTHON_CPPFLAGS=\"-I${prefix}/include/python2.7\"
 export PYTHON_LDFLAGS=\"\$PF -ldl -lpthread -lutil\"
-export MYSQL_CONFIG=\"${local}/bin/mysql_config\"
-${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR}/../../ ./configure --prefix=${local} --host=${TARGET} --build=i686-linux --with-ffmpeg=shared --disable-gl --disable-pulse --disable-sdl ${MYSQL_CONF_PARAM} --disable-x11 --with-platform=boxee --enable-gles --disable-joystick --enable-debug --enable-texturepacker --enable-nfs --enable-rtmp --enable-libcec=no --enable-libusb --with-lirc-device=/var/run/lirc/lircd --disable-sdl --enable-airplay --enable-debug=no
+export MYSQL_CONFIG=\"${prefix}/bin/mysql_config\"
+${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR}/../../ ./configure --prefix=${prefix} --host=${TARGET} --build=i686-linux --with-ffmpeg=shared --disable-gl --disable-pulse --disable-sdl ${MYSQL_CONF_PARAM} --disable-x11 --with-platform=boxee --enable-gles --disable-joystick --enable-debug --enable-texturepacker --enable-nfs --enable-rtmp --enable-libcec=no --enable-libusb --with-lirc-device=/var/run/lirc/lircd --disable-sdl --enable-airplay --enable-debug=no
 "
 )
 execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/kodi_configure_helper.sh)
@@ -174,12 +174,12 @@ foreach(lib ${libs})
 	if(HAVE_PV)
 		add_custom_target(
 			${lib}
-			COMMAND 		${HAVE_PV} ${SYSROOT}/usr/local/lib/${lib} > ${TARGET_DIR}/${lib}
+			COMMAND 		${HAVE_PV} ${SYSROOT}/usr/lib/${lib} > ${TARGET_DIR}/${lib}
 		)
 	else()
 		add_custom_target(
 			${lib}
-			COMMAND 		${CMAKE_COMMAND} -E copy_if_different ${SYSROOT}/usr/local/lib/${lib} ${TARGET_DIR}/${lib}
+			COMMAND 		${CMAKE_COMMAND} -E copy_if_different ${SYSROOT}/usr/lib/${lib} ${TARGET_DIR}/${lib}
 		)
 	endif()
 endforeach()
@@ -202,7 +202,7 @@ add_custom_target(
 
 add_custom_target(
 	pythonlibs
-	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/local/lib/python2.7 ${TARGET_DIR}/python2.7
+	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/lib/python2.7 ${TARGET_DIR}/python2.7
 	# If we don't null out the site.py it'll complain about a broken installation.
 	# Unclear if this is much better, but atleast some of python seems to run fine.
 	COMMAND 			echo "" > ${TARGET_DIR}/python2.7/site.py
@@ -222,15 +222,15 @@ set(shares
 foreach(share ${shares})
 	add_custom_target(
 		${share}
-		COMMAND 		${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/local/share/kodi/${share} ${TARGET_DIR}/${share}
+		COMMAND 		${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/share/kodi/${share} ${TARGET_DIR}/${share}
 		DEPENDS			kodi-install
 	)
 endforeach()
 
 add_custom_target(
 	shares
-	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/local/lib/kodi/addons ${TARGET_DIR}/addons
-	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/local/lib/kodi/system ${TARGET_DIR}/system
+	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/lib/kodi/addons ${TARGET_DIR}/addons
+	COMMAND 			${CMAKE_COMMAND} -E copy_directory ${SYSROOT}/usr/lib/kodi/system ${TARGET_DIR}/system
 	DEPENDS 			${shares}
 )
 
@@ -279,9 +279,9 @@ add_custom_target(refresh
 
 add_custom_target(
 egl
-COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/EGL ${SYSROOT}/usr/local/include/EGL
-COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/GLES2 ${SYSROOT}/usr/local/include/GLES2
-COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/KHR ${SYSROOT}/usr/local/include/KHR
+COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/EGL ${SYSROOT}/usr/include/EGL
+COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/GLES2 ${SYSROOT}/usr/include/GLES2
+COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/egl/KHR ${SYSROOT}/usr/include/KHR
 )
 
 add_custom_target(
